@@ -1,9 +1,4 @@
-#!/usr/bin/python
-# -*- coding:utf-8 -*-
-# @author  : jhzhong
-# @time    : 2023/11/30 17:15
-# @function: the script is used to do something.
-# @version : V1
+
 """定义 DBUtils 工具类, 封装 MySQL 数据库常用操作 API
 
     - 方法1(select_all): 查询所有数据
