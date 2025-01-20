@@ -28,6 +28,7 @@ def next_page():
         
         # 点击下一页按钮
         next_page_btn.click()
+        time.sleep(5)
         
         # 等待新页面加载完成
         WebDriverWait(browser, 10).until(
@@ -48,6 +49,8 @@ def select_category(main_category_name, sub_category_name):
 
         main_category = browser.find_element(By.XPATH, f'//p[@class="menu-article" and text()="{main_category_name}"]')
         print(f"Located main category: {main_category_name}")
+
+        time.sleep(3)
 
         # 定位二级分类
         sub_category = main_category.find_element(By.XPATH, f'./following-sibling::ul//a[text()="{sub_category_name}"]')
@@ -82,20 +85,22 @@ def search_jobs(keyword):
 browser = webdriver.Edge()
 
 ## 自定义参数
-# 目标地址
-index_url = 'https://www.zhipin.com/web/geek/job?city=101210100&position=110101' 
+# 目标城市
+index_url = 'https://www.zhipin.com/hangzhou/?ka=city-sites-101210100' 
 browser.get(index_url)
+time.sleep(3)
 # 目标岗位
-# main_category, sub_category = select_category("产品", "产品经理")  
-# time.sleep(5)
+main_category, sub_category = select_category("产品", "产品经理")  
+time.sleep(5)
 # 关键字
-# search_jobs("智能体")
+search_jobs("AI")
+time.sleep(5)
 # 最大翻页次数
-MAX_PAGES = 1  
+MAX_PAGES = 10  
 
 # 获取当前日期
-# today = datetime.date.today().strftime('%Y-%m-%d')
-# print(f"Today's date: {today}")
+today = datetime.date.today().strftime('%Y-%m-%d')
+print(f"Today's date: {today}")
 
 # 抓取当前分类的职位数据
 try:
@@ -144,24 +149,29 @@ try:
                     salary_range = match.group(1)
                     salary_type = match.group(2) if match.group(2) else None
                 else:
-                    salary_range = None
+                    salary_range = salary_element
                     salary_type = None
 
                 # 抓取岗位基本需求
                 job_basic_elements = job.find_elements(By.CSS_SELECTOR, ".job-info .tag-list li")
                 job_basic_list = [element.text.strip() for element in job_basic_elements]
                 # 工作经验
-                job_experience = company_tag_list[0] if len(job_basic_list) > 0 else None
+                job_experience = job_basic_list[0] if len(job_basic_list) > 0 else None
                 # 学历需求
-                job_education = company_tag_list[1] if len(job_basic_list) > 1 else None
+                job_education = job_basic_list[1] if len(job_basic_list) > 1 else None
 
                 # 抓取岗位tag
                 job_tag_elements = job.find_elements(By.CSS_SELECTOR, ".job-card-footer .tag-list li")
-                job_tag_list = [element.text.strip() for element in job_tag_elements]
+                job_tag_list = ",".join([element.text.strip() for element in job_tag_elements])
                 
-                print(salary_element,job_basic_list)
+                print(main_category, sub_category, job_name, job_area, job_company, job_industry, job_finance, job_scale, job_welfare, salary_range, salary_type, job_experience, job_education, job_tag_list)
+                # 保存到数据库
+                db.insert_data(
+                    "insert ignore into job_info(main_category, sub_category, job_name, job_area, job_company, job_industry, job_finance, job_scale, job_welfare, salary_range, salary_type, job_experience, job_education, job_tag_list,create_time) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                    args=(main_category, sub_category, job_name, job_area, job_company, job_industry, job_finance, 
+                          job_scale, job_welfare, salary_range, salary_type, job_experience, job_education, job_tag_list, today))
             finally:
-                print("ok")
+                db.close()
 
         # 判断是否需要翻页
         if not next_page():
