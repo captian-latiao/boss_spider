@@ -93,7 +93,8 @@ time.sleep(3)
 main_category, sub_category = select_category("产品", "产品经理")  
 time.sleep(5)
 # 关键字
-search_jobs("AI")
+search_keyword = "大模型"
+search_jobs(search_keyword)
 time.sleep(5)
 # 最大翻页次数
 MAX_PAGES = 10  
@@ -167,9 +168,9 @@ try:
                 print(main_category, sub_category, job_name, job_area, job_company, job_industry, job_finance, job_scale, job_welfare, salary_range, salary_type, job_experience, job_education, job_tag_list)
                 # 保存到数据库
                 db.insert_data(
-                    "insert ignore into job_info(main_category, sub_category, job_name, job_area, job_company, job_industry, job_finance, job_scale, job_welfare, salary_range, salary_type, job_experience, job_education, job_tag_list,create_time) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                    "insert ignore into job_info(main_category, sub_category, job_name, job_area, job_company, job_industry, job_finance, job_scale, job_welfare, salary_range, salary_type, job_experience, job_education, job_tag_list, search_keyword, create_time) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                     args=(main_category, sub_category, job_name, job_area, job_company, job_industry, job_finance, 
-                          job_scale, job_welfare, salary_range, salary_type, job_experience, job_education, job_tag_list, today))
+                          job_scale, job_welfare, salary_range, salary_type, job_experience, job_education, job_tag_list, search_keyword, today))
             finally:
                 db.close()
 
