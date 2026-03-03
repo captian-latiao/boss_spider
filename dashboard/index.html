@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOSS SPIDER // MUSEUM DASHBOARD</title>
+
+    <!-- Editorial & Data Fonts: Adding a nice modern Chinese font to compliment -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;600;900&display=swap"
+        rel="stylesheet">
+
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+
+    <!-- Core Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Bilingual Overlap Styling */
+        .bilingual-title {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+            padding-bottom: 4px;
+            /* Space for the descender of English text */
+        }
+
+        .bilingual-en {
+            font-family: var(--font-sans);
+            font-size: 2.2rem;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            color: rgba(205, 163, 97, 0.2);
+            /* Very light ochre as background */
+            font-weight: 700;
+            line-height: 1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .bilingual-zh {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--text-dark);
+            letter-spacing: 2px;
+            position: absolute;
+            left: 5px;
+            /* Slight indent covering the english */
+            bottom: -2px;
+            /* Pull down to overlap */
+            z-index: 2;
+        }
+
+        /* Updated Sidebar Brand Name */
+        h1 {
+            font-family: 'Noto Serif SC', serif;
+            font-weight: 900;
+            font-size: 3.8rem;
+            line-height: 1.05;
+            color: var(--terracotta);
+            letter-spacing: -2px;
+            margin-bottom: 0.5rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .title-star {
+            position: absolute;
+            top: -30px;
+            left: -40px;
+            width: 100px;
+            height: 100px;
+            z-index: 10;
+        }
+
+        .title-finger {
+            position: absolute;
+            top: 2px;
+            right: 10px;
+            font-size: 2rem;
+            transform: rotate(-15deg);
+            z-index: 10;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Architectural Depth Elements (Museum Style) -->
+    <div class="arch-bg arch-shape-1"></div>
+    <div class="arch-bg arch-shape-2"></div>
+    <div class="arch-bg arch-shape-3"></div>
+
+    <div class="dashboard-wrapper">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar stagger-1">
+            <div class="brand">
+                <h1 style="position: relative; display: inline-block;">
+                    <!-- User defined SVG Star (Extracted from titleStar.svg) -->
+                    <svg class="title-star" viewBox="0 0 242 242" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="127" cy="132" r="55" stroke="#D87F17" stroke-width="4" />
+                        <path
+                            d="M76.9543 43.618L123.637 109.489L197.527 76.9543L131.656 123.637L164.19 197.527L117.508 131.656L43.618 164.19L109.489 117.508L76.9543 43.618Z"
+                            fill="url(#paint0_radial_3_3)" />
+                        <circle cx="121" cy="121" r="21" fill="#FFAD28" />
+                        <defs>
+                            <radialGradient id="paint0_radial_3_3" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse"
+                                gradientTransform="translate(120.572 120.572) rotate(60.4552) scale(88.4561)">
+                                <stop stop-color="#FFAD28" />
+                                <stop offset="0.290925" stop-color="#FFAD28" />
+                                <stop offset="1" stop-color="#B15007" />
+                            </radialGradient>
+                        </defs>
+                    </svg>
+                    <span style="position:relative; z-index: 11;">蜘蛛的</span><br>
+                    <span style="position:relative; z-index: 11;">「逆转」
+                        <span class="title-finger">👉</span>
+                    </span>
+                </h1>
+                <p class="subtitle" style="margin-top: 5px;">The Spider Archive / Curated Data</p>
+            </div>
+
+            <div class="ai-summary">
+                <div class="bilingual-title" style="margin-bottom: 1.5rem;">
+                    <span class="bilingual-en">Insight</span>
+                    <span class="bilingual-zh">核心归因</span>
+                </div>
+                <div id="insight-content" class="insight-text">
+                    <!-- JS Injected Deep Analysis -->
+                    <p>加载核心分析模型...</p>
+                </div>
+                <a href="#" class="read-more">读取AI推演 <span>&rarr;</span></a>
+            </div>
+
+            <div class="live-feed-container">
+                <div class="bilingual-title" style="margin-bottom: 1.5rem;">
+                    <span class="bilingual-en">Ingestion</span>
+                    <span class="bilingual-zh">实时捕获</span>
+                </div>
+                <div class="feed-header">
+                    <span>捕获岗位 / Job Title</span>
+                    <span>薪资回报 / Salary</span>
+                </div>
+                <div class="feed-scroller" id="live-feed">
+                    <!-- Dynamic Items -->
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content">
+
+            <!-- Top Controls & Key Metrics -->
+            <header class="top-bar stagger-2">
+                <div class="metric-card">
+                    <span class="metric-title">全量数据池 (Total Records)</span>
+                    <strong class="metric-value" id="val-total">...</strong>
+                    <div class="metric-trend up">+ LIVE</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-title">薪资中位数 (Median Salary)</span>
+                    <strong class="metric-value" id="val-salary">...</strong>
+                    <div class="metric-trend stable">稳定</div>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-title">高频集散地 (Top Regional Hub)</span>
+                    <strong class="metric-value" id="val-city">...</strong>
+                    <div class="metric-trend up">热门</div>
+                </div>
+            </header>
+
+            <!-- Dense Data Grid -->
+            <div class="data-grid">
+
+                <!-- Main Salary Spectrum Chart -->
+                <div class="panel panel-large stagger-3">
+                    <div class="panel-header"
+                        style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div class="bilingual-title" style="margin-bottom:0;">
+                            <span class="bilingual-en">Spectrum</span>
+                            <span class="bilingual-zh">薪资极化</span>
+                        </div>
+                        <button id="btn-filter-intern"
+                            style="background:transparent; border:1px solid rgba(205,163,97,0.4); border-radius:4px; padding:2px 8px; font-size:0.8rem; font-family:'Noto Serif SC',serif; color:var(--accent-amber); cursor:pointer; transition:all 0.2s; margin-top:5px;">
+                            实习
+                        </button>
+                    </div>
+                    <div class="chart-wrapper line-chart-wrapper" id="chart-salary"></div>
+                </div>
+
+                <!-- Geographic Rose Chart -->
+                <div class="panel panel-medium stagger-4">
+                    <div class="panel-header">
+                        <div class="bilingual-title">
+                            <span class="bilingual-en">Geography</span>
+                            <span class="bilingual-zh">区域热点</span>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper" id="chart-geo"></div>
+                </div>
+
+                <!-- Company Finance Donut -->
+                <div class="panel panel-medium stagger-5">
+                    <div class="panel-header">
+                        <div class="bilingual-title">
+                            <span class="bilingual-en">Ecosystem</span>
+                            <span class="bilingual-zh">资本生态</span>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper donut-wrapper" id="chart-finance"></div>
+                </div>
+
+                <!-- Company hiring volume vs Scale (Scatter) -->
+                <div class="panel panel-medium stagger-6">
+                    <div class="panel-header">
+                        <div class="bilingual-title">
+                            <span class="bilingual-en">Hiring Scale</span>
+                            <span class="bilingual-zh">规模倒挂</span>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper" id="chart-hiring-scale"></div>
+                </div>
+
+                <!-- Domain Taxonomy (Dual Axis - Volume & Salary) -->
+                <div class="panel panel-medium stagger-7">
+                    <div class="panel-header">
+                        <div class="bilingual-title">
+                            <span class="bilingual-en">Taxonomy</span>
+                            <span class="bilingual-zh">黄金赛道</span>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper" id="chart-subdomain"></div>
+                </div>
+
+                <!-- Expanded Welfare Tags at the bottom to save chart space -->
+                <div class="panel panel-bottom stagger-8">
+                    <div class="panel-header" style="margin-bottom:0.5rem">
+                        <div class="bilingual-title">
+                            <span class="bilingual-en">Penetration</span>
+                            <span class="bilingual-zh">长尾边际</span>
+                        </div>
+                    </div>
+                    <div class="tag-masonry" id="tags-container">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Data & App Logic -->
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
