@@ -51,6 +51,21 @@ function parseSalary(salaryStr) {
 }
 
 function processData(data) {
+    // 按照公司名称进行数据去重，获取更真实的分布
+    let seenCompanies = new Set();
+    let uniqueData = [];
+    for (let job of data) {
+        if (job.job_company) {
+            if (!seenCompanies.has(job.job_company)) {
+                seenCompanies.add(job.job_company);
+                uniqueData.push(job);
+            }
+        } else {
+            uniqueData.push(job);
+        }
+    }
+    data = uniqueData;
+
     let cities = {};
     let distCities = {}; // Specific District counts
     let expSalaryMap = {};
@@ -143,7 +158,7 @@ function processData(data) {
         }
 
         if (job.job_welfare && job.job_welfare !== 'NULL') {
-            job.job_welfare.split('，').forEach(tag => {
+            job.job_welfare.split(/,|，/).forEach(tag => {
                 tag = tag.trim();
                 if (tag && tag.length > 1) tagsCount[tag] = (tagsCount[tag] || 0) + 1;
             });
@@ -156,6 +171,7 @@ function processData(data) {
 
     return {
         totalJobs: processedCount,
+        uniqueJobs: data,
         topCity,
         medianSalary: Math.round(medianSalary),
         validSalaries,
@@ -464,21 +480,70 @@ function initSubdomainChart() {
 }
 
 // Lower tags
+let selectedWelfareTag = null;
 function renderWelfareTags() {
     const container = document.getElementById('tags-container');
-    const sortedTags = Object.entries(analytics.tagsCount).sort((a, b) => b[1] - a[1]).slice(0, 60);
+    container.innerHTML = '';
+
+    let baseJobs = analytics.uniqueJobs || [];
+    let baseCount = baseJobs.length;
+    let tagsCount = analytics.tagsCount;
+
+    // Compute conditional distribution if a tag is selected
+    if (selectedWelfareTag) {
+        let filteredJobs = baseJobs.filter(job => job.job_welfare && job.job_welfare.split(/,|，/).map(t => t.trim()).includes(selectedWelfareTag));
+        baseCount = filteredJobs.length || 1; // Prevent division by zero
+
+        tagsCount = {};
+        filteredJobs.forEach(job => {
+            job.job_welfare.split(/,|，/).forEach(tag => {
+                tag = tag.trim();
+                if (tag && tag.length > 1) {
+                    tagsCount[tag] = (tagsCount[tag] || 0) + 1;
+                }
+            });
+        });
+    }
+
+    // Identify top 10 globally to make them consistently clickable
+    const globalTop10 = Object.entries(analytics.tagsCount).sort((a, b) => b[1] - a[1]).slice(0, 10).map(t => t[0]);
+    const sortedTags = Object.entries(tagsCount).sort((a, b) => b[1] - a[1]).slice(0, 60);
 
     sortedTags.forEach(([tag, count], index) => {
-        let pct = ((count / analytics.totalJobs) * 100).toFixed(1);
+        let pct = ((count / baseCount) * 100).toFixed(1);
         const span = document.createElement('span');
         span.className = 'welfare-chip';
-        if (index < 5) {
+
+        const isClickable = globalTop10.includes(tag);
+
+        if (isClickable) {
+            span.style.cursor = 'pointer';
+            span.title = '点击查看同时具备该福利的共存比例 (再次点击取消)';
+            span.onclick = () => {
+                selectedWelfareTag = (selectedWelfareTag === tag) ? null : tag;
+                renderWelfareTags();
+            };
+        }
+
+        if (selectedWelfareTag === tag) {
+            span.style.backgroundColor = ACCENT_AMBER;
+            span.style.color = '#fff';
             span.style.borderColor = ACCENT_AMBER;
-            span.style.color = ACCENT_AMBER;
-            span.style.fontWeight = '600';
-            span.innerText = `${tag} ${pct}% ★`;
+            span.style.fontWeight = '700';
+            span.innerText = `${tag} (已选) 100% ✕`;
         } else {
-            span.innerText = `${tag} ${pct}%`;
+            if (index < 5 && !selectedWelfareTag) {
+                span.style.borderColor = ACCENT_AMBER;
+                span.style.color = ACCENT_AMBER;
+                span.style.fontWeight = '600';
+                span.innerText = `${tag} ${pct}% ★`;
+            } else {
+                span.innerText = `${tag} ${pct}%`;
+            }
+            if (isClickable && selectedWelfareTag !== tag) {
+                span.style.borderStyle = 'dashed';
+                span.style.borderColor = 'rgba(216,137,34,0.5)';
+            }
         }
         container.appendChild(span);
     });
@@ -512,8 +577,9 @@ function renderAll() {
     charts.forEach(c => c.dispose());
     charts = [];
 
-    // Clear tags
+    // Clear tags and selection state
     document.getElementById('tags-container').innerHTML = '';
+    selectedWelfareTag = null;
 
     analytics = processData(jobData);
     currentDisplayTotal = Math.max(0, analytics.totalJobs - 150);

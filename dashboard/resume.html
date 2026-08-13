@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网安+X 协同处置平台 — 产品案例 | PM Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        navy: {
+                            900: '#0a1628',
+                            800: '#0f1f35',
+                            700: '#152a45',
+                            600: '#1e3a5f',
+                            500: '#2a4d7a',
+                            400: '#3d6a9e',
+                        },
+                        cyan: {
+                            400: '#00d4e8',
+                            500: '#00bcd4',
+                            600: '#0097a7',
+                        },
+                        cleantech: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hero-gradient {
+            background: linear-gradient(135deg, #0a1628 0%, #0f1f35 40%, #1e3a5f 100%);
+        }
+
+        .hero-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 188, 212, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .tech-grid {
+            background-image:
+                linear-gradient(rgba(0, 188, 212, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 188, 212, 0.06) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .card-shadow-hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+        }
+
+        .number-glow {
+            text-shadow: 0 0 40px rgba(0, 188, 212, 0.3);
+        }
+
+        .interface-frame {
+            border: 1px solid rgba(0, 188, 212, 0.15);
+            background: linear-gradient(180deg, rgba(10, 22, 40, 0.95) 0%, rgba(15, 31, 53, 0.98) 100%);
+        }
+
+        .tab-active {
+            background: rgba(0, 188, 212, 0.12);
+            border-bottom: 2px solid #00bcd4;
+        }
+
+        .tab-inactive {
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-inactive:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        .data-flow {
+            background: linear-gradient(90deg, transparent, rgba(0, 188, 212, 0.1), transparent);
+            animation: flow 3s ease-in-out infinite;
+        }
+
+        @keyframes flow {
+
+            0%,
+            100% {
+                transform: translateX(-100%);
+            }
+
+            50% {
+                transform: translateX(100%);
+            }
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, rgba(0, 188, 212, 0.08) 0%, rgba(10, 22, 40, 0.6) 100%);
+            border: 1px solid rgba(0, 188, 212, 0.15);
+        }
+
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 188, 212, 0.3), transparent);
+        }
+    </style>
+</head>
+
+<body class="font-sans text-gray-800 antialiased">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-navy-900/90 backdrop-blur-md border-b border-white/5">
+        <div class="max-w-[1200px] mx-auto px-8 h-14 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-7 h-7 rounded-[6px] bg-gradient-to-br from-cyan-500 to-navy-600 flex items-center justify-center">
+                    <span class="text-white text-xs font-bold font-mono">PM</span>
+                </div>
+                <span class="text-white font-semibold text-sm tracking-wide">Portfolio</span>
+            </div>
+            <div class="flex items-center gap-8">
+                <a href="#works" class="text-cleantech-300 hover:text-white text-sm transition-colors">作品</a>
+                <a href="#about" class="text-cleantech-300 hover:text-white text-sm transition-colors">关于</a>
+                <a href="#contact" class="text-cleantech-300 hover:text-white text-sm transition-colors">联系</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Section 1: Hero -->
+    <section class="hero-gradient min-h-screen flex items-center relative overflow-hidden pt-14">
+        <div class="hero-glow top-[-200px] right-[-100px]"></div>
+        <div class="hero-glow bottom-[-300px] left-[-200px]"></div>
+
+        <div class="max-w-[1200px] mx-auto px-8 py-20 grid grid-cols-2 gap-16 items-center relative z-10">
+            <!-- Left: Text -->
+            <div class="space-y-8">
+                <div class="inline-flex">
+                    <span
+                        class="px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs font-medium tracking-wide">
+                        产品案例
+                    </span>
+                </div>
+
+                <h1 class="text-[32px] font-bold text-white leading-[1.3] tracking-tight">
+                    网安+X 协同处置平台<br>
+                    <span class="text-cleantech-300 font-normal">—— 研判 OA 协作系统</span>
+                </h1>
+
+                <div class="flex flex-wrap gap-3">
+                    <span
+                        class="px-3 py-1.5 rounded-[8px] bg-white/8 text-cleantech-200 text-xs border border-white/10">
+                        产品负责人
+                    </span>
+                    <span
+                        class="px-3 py-1.5 rounded-[8px] bg-white/8 text-cleantech-200 text-xs border border-white/10">
+                        2024.03 - 2024.12
+                    </span>
+                    <span
+                        class="px-3 py-1.5 rounded-[8px] bg-white/8 text-cleantech-200 text-xs border border-white/10">
+                        B端 · 智能化转型
+                    </span>
+                </div>
+
+                <p class="text-[14px] text-cleantech-300 leading-[1.6] max-w-[480px]">
+                    专精于电子数据取证与分析领域，以"AI+取证技术"双轮驱动，面向多警种、多单位打造的跨闭环高效协同研判与全生命周期案件处置平台。
+                </p>
+
+                <div class="flex items-center gap-4 pt-2">
+                    <button
+                        class="px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-navy-900 text-sm font-semibold rounded-[10px] transition-all hover:shadow-[0_4px_20px_rgba(0,188,212,0.3)]">
+                        查看完整案例
+                    </button>
+                    <button
+                        class="px-6 py-3 border border-white/20 hover:border-white/40 text-white text-sm rounded-[10px] transition-all hover:bg-white/5">
+                        下载产品文档
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right: Interface Mockup -->
+            <div class="relative">
+                <div class="interface-frame rounded-[16px] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
+                    <!-- Browser Chrome -->
+                    <div class="flex items-center gap-2 px-4 py-3 bg-navy-800/80 border-b border-white/5">
+                        <div class="flex gap-1.5">
+                            <div class="w-2.5 h-2.5 rounded-full bg-red-400/60"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-400/60"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-green-400/60"></div>
+                        </div>
+                        <div class="flex-1 mx-4">
+                            <div class="h-5 rounded-[4px] bg-white/5 flex items-center px-3">
+                                <span class="text-[10px] text-cleantech-400 font-mono">协同处置平台 / 案件管理 / 案件详情</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- App Interface -->
+                    <div class="tech-grid p-5 space-y-4">
+                        <!-- Top Bar -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-[8px] bg-cyan-500/20 flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                </div>
+                                <span class="text-white text-sm font-medium">案件管理系统</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                                <span class="text-[10px] text-cleantech-400">系统正常</span>
+                            </div>
+                        </div>
+
+                        <!-- Case Header -->
+                        <div class="bg-navy-800/60 rounded-[12px] p-4 border border-white/5">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="px-2 py-0.5 rounded-[4px] bg-red-500/20 text-red-400 text-[10px]">紧急</span>
+                                <span class="text-white text-sm font-medium">杨**销售有毒有害食品案</span>
+                                <span
+                                    class="text-cleantech-400 text-[10px] ml-auto font-mono">A15976584321569745698562</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-3 text-[10px]">
+                                <div class="text-cleantech-400">立案日期: <span class="text-cleantech-200">2024-02-08</span>
+                                </div>
+                                <div class="text-cleantech-400">案件类型: <span class="text-cleantech-200">有毒食品</span></div>
+                                <div class="text-cleantech-400">立案单位: <span class="text-cleantech-200">xx公安局xx大队</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tabs -->
+                        <div class="flex gap-1">
+                            <div class="tab-active px-4 py-2 rounded-t-[8px] text-cyan-400 text-[11px] font-medium">案件详情
+                            </div>
+                            <div class="tab-inactive px-4 py-2 rounded-t-[8px] text-cleantech-400 text-[11px]">线索信息
+                            </div>
+                            <div class="tab-inactive px-4 py-2 rounded-t-[8px] text-cleantech-400 text-[11px]">审批记录
+                            </div>
+                            <div class="tab-inactive px-4 py-2 rounded-t-[8px] text-cleantech-400 text-[11px]">操作日志
+                            </div>
+                        </div>
+
+                        <!-- Content Area -->
+                        <div
+                            class="bg-navy-800/40 rounded-b-[12px] rounded-tr-[12px] p-4 border border-white/5 space-y-3">
+                            <!-- Info Grid -->
+                            <div class="grid grid-cols-4 gap-2">
+                                <div class="bg-navy-900/60 rounded-[6px] p-2">
+                                    <div class="text-[9px] text-cleantech-400 mb-1">承办人员</div>
+                                    <div class="flex items-center gap-1">
+                                        <div
+                                            class="w-4 h-4 rounded-full bg-cyan-500/30 flex items-center justify-center text-[7px] text-cyan-400">
+                                            赵</div>
+                                        <span class="text-[10px] text-cleantech-200">赵警官</span>
+                                    </div>
+                                </div>
+                                <div class="bg-navy-900/60 rounded-[6px] p-2">
+                                    <div class="text-[9px] text-cleantech-400 mb-1">协办人员</div>
+                                    <div class="flex -space-x-1">
+                                        <div
+                                            class="w-4 h-4 rounded-full bg-blue-500/30 flex items-center justify-center text-[7px] text-blue-400 border border-navy-800">
+                                            李</div>
+                                        <div
+                                            class="w-4 h-4 rounded-full bg-purple-500/30 flex items-center justify-center text-[7px] text-purple-400 border border-navy-800">
+                                            王</div>
+                                        <div
+                                            class="w-4 h-4 rounded-full bg-green-500/30 flex items-center justify-center text-[7px] text-green-400 border border-navy-800">
+                                            +2</div>
+                                    </div>
+                                </div>
+                                <div class="bg-navy-900/60 rounded-[6px] p-2">
+                                    <div class="text-[9px] text-cleantech-400 mb-1">案件状态</div>
+                                    <div class="flex items-center gap-1">
+                                        <div class="status-dot bg-yellow-400"></div>
+                                        <span class="text-[10px] text-yellow-400">侦办中</span>
+                                    </div>
+                                </div>
+                                <div class="bg-navy-900/60 rounded-[6px] p-2">
+                                    <div class="text-[9px] text-cleantech-400 mb-1">优先级</div>
+                                    <span class="text-[10px] text-red-400">高</span>
+                                </div>
+                            </div>
+
+                            <!-- Table -->
+                            <div class="rounded-[8px] overflow-hidden border border-white/5">
+                                <div class="grid grid-cols-6 gap-0 text-[9px]">
+                                    <div class="bg-navy-700/50 px-3 py-2 text-cleantech-400">线索类型</div>
+                                    <div class="bg-navy-700/50 px-3 py-2 text-cleantech-400">线索内容</div>
+                                    <div class="bg-navy-700/50 px-3 py-2 text-cleantech-400">涉案人员</div>
+                                    <div class="bg-navy-700/50 px-3 py-2 text-cleantech-400">关联案件</div>
+                                    <div class="bg-navy-700/50 px-3 py-2 text-cleantech-400">状态</div>
+                                    <div class="bg-navy-700/50 px-3 py-2 text-cleantech-400">操作</div>
+
+                                    <div class="px-3 py-2 text-cleantech-300 border-t border-white/5">硬件特征串</div>
+                                    <div
+                                        class="px-3 py-2 text-cleantech-200 font-mono text-[8px] border-t border-white/5">
+                                        2D:EE:66:B7:4C:67</div>
+                                    <div class="px-3 py-2 text-cleantech-300 border-t border-white/5">王敦强</div>
+                                    <div class="px-3 py-2 text-cyan-400 border-t border-white/5">鲁**被骗案</div>
+                                    <div class="px-3 py-2 border-t border-white/5"><span
+                                            class="px-1.5 py-0.5 rounded-[3px] bg-green-500/15 text-green-400 text-[8px]">已核实</span>
+                                    </div>
+                                    <div class="px-3 py-2 text-cyan-400 text-[8px] border-t border-white/5">同步子线索</div>
+
+                                    <div class="px-3 py-2 text-cleantech-300 border-t border-white/5">谋略贴靠</div>
+                                    <div
+                                        class="px-3 py-2 text-cleantech-200 font-mono text-[8px] border-t border-white/5">
+                                        29351364557</div>
+                                    <div class="px-3 py-2 text-cleantech-300 border-t border-white/5">赵天宇</div>
+                                    <div class="px-3 py-2 text-cyan-400 border-t border-white/5">12.2开设赌场案</div>
+                                    <div class="px-3 py-2 border-t border-white/5"><span
+                                            class="px-1.5 py-0.5 rounded-[3px] bg-yellow-500/15 text-yellow-400 text-[8px]">待核实</span>
+                                    </div>
+                                    <div class="px-3 py-2 text-cyan-400 text-[8px] border-t border-white/5">同步子线索</div>
+                                </div>
+                            </div>
+
+                            <!-- Pagination -->
+                            <div class="flex items-center justify-end gap-2">
+                                <div class="flex gap-1">
+                                    <div
+                                        class="w-6 h-6 rounded-[4px] bg-white/5 flex items-center justify-center text-[9px] text-cleantech-400">
+                                        &lt;</div>
+                                    <div
+                                        class="w-6 h-6 rounded-[4px] bg-cyan-500/20 flex items-center justify-center text-[9px] text-cyan-400">
+                                        1</div>
+                                    <div
+                                        class="w-6 h-6 rounded-[4px] bg-white/5 flex items-center justify-center text-[9px] text-cleantech-400">
+                                        2</div>
+                                    <div
+                                        class="w-6 h-6 rounded-[4px] bg-white/5 flex items-center justify-center text-[9px] text-cleantech-400">
+                                        3</div>
+                                    <div
+                                        class="w-6 h-6 rounded-[4px] bg-white/5 flex items-center justify-center text-[9px] text-cleantech-400">
+                                        &gt;</div>
+                                </div>
+                                <span class="text-[9px] text-cleantech-400">10/page</span>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Status -->
+                        <div class="flex items-center justify-between text-[9px] text-cleantech-500">
+                            <span>最后更新: 2024-04-06 17:36:35</span>
+                            <div class="flex items-center gap-2">
+                                <div class="w-1.5 h-1.5 rounded-full bg-cyan-400 relative">
+                                    <div class="absolute inset-0 rounded-full bg-cyan-400 pulse-ring"></div>
+                                </div>
+                                <span class="text-cyan-400">实时同步中</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating Elements -->
+                <div
+                    class="absolute -top-4 -right-4 w-20 h-20 rounded-[12px] bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center backdrop-blur-sm">
+                    <div class="text-center">
+                        <div class="text-cyan-400 text-lg font-bold font-mono">AI</div>
+                        <div class="text-cyan-400/60 text-[8px]">驱动</div>
+                    </div>
+                </div>
+                <div
+                    class="absolute -bottom-3 -left-3 px-3 py-2 rounded-[8px] bg-navy-800/90 border border-white/10 flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                    <span class="text-[10px] text-cleantech-200">12 个单位在线协同</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+            <span class="text-[10px] text-cleantech-400 tracking-widest uppercase">Scroll</span>
+            <div class="w-5 h-8 rounded-full border border-cleantech-400/30 flex justify-center pt-2">
+                <div class="w-1 h-2 rounded-full bg-cyan-400 animate-bounce"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Challenge & Context -->
+    <section class="bg-white py-24">
+        <div class="max-w-[1200px] mx-auto px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-[24px] font-semibold text-navy-900 mb-3">痛点与挑战</h2>
+                <div class="w-12 h-0.5 bg-cyan-500 mx-auto"></div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div
+                    class="group rounded-[12px] bg-white card-shadow hover:card-shadow-hover border border-cleantech-200/60 p-8 transition-all duration-300 hover:-translate-y-1">
+                    <div
+                        class="w-12 h-12 rounded-[12px] bg-red-50 flex items-center justify-center mb-6 group-hover:bg-red-100 transition-colors">
+                        <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-[16px] font-semibold text-navy-900 mb-3">系统冗余与割裂</h3>
+                    <p class="text-[14px] text-gray-600 leading-[1.6]">
+                        旧系统业务逻辑冗余，各单位数据口径不统一，协同效率低下。跨部门信息流转依赖人工传递，形成严重的数据孤岛。
+                    </p>
+                </div>
+
+                <!-- Card 2 -->
+                <div
+                    class="group rounded-[12px] bg-white card-shadow hover:card-shadow-hover border border-cleantech-200/60 p-8 transition-all duration-300 hover:-translate-y-1">
+                    <div
+                        class="w-12 h-12 rounded-[12px] bg-orange-50 flex items-center justify-center mb-6 group-hover:bg-orange-100 transition-colors">
+                        <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-[16px] font-semibold text-navy-900 mb-3">配置成本高昂</h3>
+                    <p class="text-[14px] text-gray-600 leading-[1.6]">
+                        权限、审批、表单等基础模块缺乏通用标准，非标业务多，无法快速响应多变动的复杂路由协作，每次新业务上线需数周开发周期。
+                    </p>
+                </div>
+
+                <!-- Card 3 -->
+                <div
+                    class="group rounded-[12px] bg-white card-shadow hover:card-shadow-hover border border-cleantech-200/60 p-8 transition-all duration-300 hover:-translate-y-1">
+                    <div
+                        class="w-12 h-12 rounded-[12px] bg-blue-50 flex items-center justify-center mb-6 group-hover:bg-blue-100 transition-colors">
+                        <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                        </svg>
+                    </div>
+                    <h3 class="text-[16px] font-semibold text-navy-900 mb-3">资产无法复用</h3>
+                    <p class="text-[14px] text-gray-600 leading-[1.6]">
+                        海量历史案卷沉淀在系统中无法有效流转，缺乏智能检索与推荐手段，导致历史研判经验严重浪费，同类案件重复分析。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: Core Solutions -->
+    <section class="bg-cleantech-50 py-24">
+        <div class="max-w-[1200px] mx-auto px-8">
+            <div class="text-center mb-20">
+                <h2 class="text-[24px] font-semibold text-navy-900 mb-3">核心解决方案</h2>
+                <div class="w-12 h-0.5 bg-cyan-500 mx-auto"></div>
+            </div>
+
+            <!-- Sub-section A: Left Image, Right Text -->
+            <div class="grid grid-cols-2 gap-16 items-center mb-20">
+                <div class="relative">
+                    <div
+                        class="rounded-[16px] overflow-hidden bg-gradient-to-br from-navy-800 to-navy-600 p-8 shadow-[0_20px_50px_rgba(10,22,40,0.2)]">
+                        <div class="tech-grid rounded-[12px] bg-navy-900/80 p-6 space-y-4">
+                            <!-- Architecture Diagram -->
+                            <div class="flex items-center justify-center gap-4">
+                                <div
+                                    class="w-24 h-16 rounded-[8px] bg-cyan-500/20 border border-cyan-500/30 flex flex-col items-center justify-center">
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-cyan-500/30 flex items-center justify-center mb-1">
+                                        <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-[9px] text-cyan-400">业务中台</span>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <div class="w-8 h-0.5 bg-cyan-500/40"></div>
+                                    <div class="w-8 h-0.5 bg-cyan-500/40"></div>
+                                </div>
+                                <div
+                                    class="w-24 h-16 rounded-[8px] bg-purple-500/20 border border-purple-500/30 flex flex-col items-center justify-center">
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-purple-500/30 flex items-center justify-center mb-1">
+                                        <svg class="w-3 h-3 text-purple-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-[9px] text-purple-400">权限中心</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-center">
+                                <div class="w-0.5 h-6 bg-cyan-500/30"></div>
+                            </div>
+                            <div class="flex items-center justify-center gap-4">
+                                <div
+                                    class="w-24 h-16 rounded-[8px] bg-green-500/20 border border-green-500/30 flex flex-col items-center justify-center">
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-green-500/30 flex items-center justify-center mb-1">
+                                        <svg class="w-3 h-3 text-green-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-[9px] text-green-400">审批引擎</span>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <div class="w-8 h-0.5 bg-green-500/40"></div>
+                                    <div class="w-8 h-0.5 bg-green-500/40"></div>
+                                </div>
+                                <div
+                                    class="w-24 h-16 rounded-[8px] bg-yellow-500/20 border border-yellow-500/30 flex flex-col items-center justify-center">
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-yellow-500/30 flex items-center justify-center mb-1">
+                                        <svg class="w-3 h-3 text-yellow-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-[9px] text-yellow-400">多维表单</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-center">
+                                <div class="w-0.5 h-6 bg-cyan-500/30"></div>
+                            </div>
+                            <div
+                                class="w-full h-12 rounded-[8px] bg-navy-700/50 border border-white/10 flex items-center justify-center">
+                                <span class="text-[10px] text-cleantech-300">统一操作基线 · 标准化输出</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute -bottom-3 -right-3 w-24 h-24 rounded-full bg-cyan-400/10 blur-2xl"></div>
+                </div>
+
+                <div class="space-y-6">
+                    <div
+                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-[8px] bg-cyan-500/10 border border-cyan-500/20">
+                        <div class="w-1.5 h-1.5 rounded-full bg-cyan-500"></div>
+                        <span class="text-cyan-600 text-xs font-medium">平台化转型</span>
+                    </div>
+                    <h3 class="text-[24px] font-semibold text-navy-900 leading-[1.3]">逆推业务流，划定产品边界</h3>
+                    <p class="text-[14px] text-gray-600 leading-[1.6]">
+                        彻底剔除冗余流程，将权限、审批流、多维表单等功能抽象为高复用的通用中台模块，为整个协同处置体系提供统一的操作基线，实现非标业务标准化。通过模块化设计，新业务配置时间从数周缩短至数天。
+                    </p>
+                    <div class="flex gap-4 pt-2">
+                        <div class="flex items-center gap-2 text-[12px] text-gray-500">
+                            <div class="w-4 h-4 rounded-[4px] bg-cyan-500/20 flex items-center justify-center">
+                                <svg class="w-2.5 h-2.5 text-cyan-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            模块化架构
+                        </div>
+                        <div class="flex items-center gap-2 text-[12px] text-gray-500">
+                            <div class="w-4 h-4 rounded-[4px] bg-cyan-500/20 flex items-center justify-center">
+                                <svg class="w-2.5 h-2.5 text-cyan-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            配置化驱动
+                        </div>
+                        <div class="flex items-center gap-2 text-[12px] text-gray-500">
+                            <div class="w-4 h-4 rounded-[4px] bg-cyan-500/20 flex items-center justify-center">
+                                <svg class="w-2.5 h-2.5 text-cyan-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            标准统一
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sub-section B: Left Text, Right Image -->
+            <div class="grid grid-cols-2 gap-16 items-center mb-20">
+                <div class="space-y-6 order-1">
+                    <div
+                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-[8px] bg-purple-500/10 border border-purple-500/20">
+                        <div class="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
+                        <span class="text-purple-600 text-xs font-medium">AI 赋能</span>
+                    </div>
+                    <h3 class="text-[24px] font-semibold text-navy-900 leading-[1.3]">AI+取证落地，结构化抽取</h3>
+                    <p class="text-[14px] text-gray-600 leading-[1.6]">
+                        引入大模型（LLM）能力，将复杂的非结构化警情描述与案卷信息，自动抽取为摘要、时间线、关键涉案线索等结构化维度，极大缩短人工录入与阅卷时间。原本需要数小时的案卷梳理工作，现在几分钟即可完成。
+                    </p>
+                    <div class="flex gap-4 pt-2">
+                        <div class="flex items-center gap-2 text-[12px] text-gray-500">
+                            <div class="w-4 h-4 rounded-[4px] bg-purple-500/20 flex items-center justify-center">
+                                <svg class="w-2.5 h-2.5 text-purple-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            LLM 解析
+                        </div>
+                        <div class="flex items-center gap-2 text-[12px] text-gray-500">
+                            <div class="w-4 h-4 rounded-[4px] bg-purple-500/20 flex items-center justify-center">
+                                <svg class="w-2.5 h-2.5 text-purple-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            自动摘要
+                        </div>
+                        <div class="flex items-center gap-2 text-[12px] text-gray-500">
+                            <div class="w-4 h-4 rounded-[4px] bg-purple-500/20 flex items-center justify-center">
+                                <svg class="w-2.5 h-2.5 text-purple-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            时间线生成
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative order-2">
+                    <div
+                        class="rounded-[16px] overflow-hidden bg-gradient-to-br from-purple-900/20 to-navy-800 p-8 shadow-[0_20px_50px_rgba(10,22,40,0.2)]">
+                        <div class="tech-grid rounded-[12px] bg-navy-900/80 p-6">
+                            <!-- AI Processing Visualization -->
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-[10px] bg-navy-700 flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-cleantech-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="h-2 rounded-full bg-navy-700 mb-2"></div>
+                                        <div class="h-2 rounded-full bg-navy-700 w-3/4"></div>
+                                    </div>
+                                    <span class="text-[10px] text-cleantech-500">原始卷宗</span>
+                                </div>
+
+                                <div class="flex justify-center">
+                                    <div
+                                        class="w-8 h-8 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center relative">
+                                        <div
+                                            class="absolute inset-0 rounded-full border border-purple-400/20 animate-ping">
+                                        </div>
+                                        <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div
+                                        class="flex items-center gap-2 px-3 py-2 rounded-[6px] bg-green-500/10 border border-green-500/20">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-green-400"></div>
+                                        <span class="text-[10px] text-green-400">案件摘要</span>
+                                        <span class="text-[9px] text-cleantech-500 ml-auto">自动生成</span>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-2 px-3 py-2 rounded-[6px] bg-cyan-500/10 border border-cyan-500/20">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-cyan-400"></div>
+                                        <span class="text-[10px] text-cyan-400">时间线</span>
+                                        <span class="text-[9px] text-cleantech-500 ml-auto">8个关键节点</span>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-2 px-3 py-2 rounded-[6px] bg-yellow-500/10 border border-yellow-500/20">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-yellow-400"></div>
+                                        <span class="text-[10px] text-yellow-400">涉案线索</span>
+                                        <span class="text-[9px] text-cleantech-500 ml-auto">12条提取</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute -top-3 -left-3 w-20 h-20 rounded-full bg-purple-400/10 blur-2xl"></div>
+                </div>
+            </div>
+
+            <!-- Sub-section C: Left Image, Right Text -->
+            <div class="grid grid-cols-2 gap-16 items-center">
+                <div class="relative">
+                    <div
+                        class="rounded-[16px] overflow-hidden bg-gradient-to-br from-navy-800 to-cyan-900/30 p-8 shadow-[0_20px_50px_rgba(10,22,40,0.2)]">
+                        <div class="tech-grid rounded-[12px] bg-navy-900/80 p-6">
+                            <!-- RAG Knowledge Base -->
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="text-[11px] text-cleantech-300 font-medium">案卷知识库</span>
+                                    <span class="text-[9px] text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full">RAG
+                                        驱动</span>
+                                </div>
+
+                                <div
+                                    class="relative h-32 rounded-[8px] bg-navy-800/60 border border-white/5 overflow-hidden">
+                                    <!-- Network Graph -->
+                                    <svg class="absolute inset-0 w-full h-full" viewBox="0 0 200 100">
+                                        <circle cx="100" cy="50" r="6" fill="#00bcd4" opacity="0.8" />
+                                        <circle cx="60" cy="30" r="4" fill="#3d6a9e" opacity="0.6" />
+                                        <circle cx="140" cy="35" r="4" fill="#3d6a9e" opacity="0.6" />
+                                        <circle cx="50" cy="70" r="4" fill="#3d6a9e" opacity="0.6" />
+                                        <circle cx="150" cy="65" r="4" fill="#3d6a9e" opacity="0.6" />
+                                        <circle cx="80" cy="80" r="3" fill="#5a8ab8" opacity="0.4" />
+                                        <circle cx="120" cy="75" r="3" fill="#5a8ab8" opacity="0.4" />
+                                        <line x1="100" y1="50" x2="60" y2="30" stroke="#00bcd4" stroke-width="0.5"
+                                            opacity="0.3" />
+                                        <line x1="100" y1="50" x2="140" y2="35" stroke="#00bcd4" stroke-width="0.5"
+                                            opacity="0.3" />
+                                        <line x1="100" y1="50" x2="50" y2="70" stroke="#00bcd4" stroke-width="0.5"
+                                            opacity="0.3" />
+                                        <line x1="100" y1="50" x2="150" y2="65" stroke="#00bcd4" stroke-width="0.5"
+                                            opacity="0.3" />
+                                        <line x1="60" y1="30" x2="50" y2="70" stroke="#3d6a9e" stroke-width="0.3"
+                                            opacity="0.2" />
+                                        <line x1="140" y1="35" x2="150" y2="65" stroke="#3d6a9e" stroke-width="0.3"
+                                            opacity="0.2" />
+                                    </svg>
+                                    <div class="absolute bottom-2 left-2 right-2 flex gap-1">
+                                        <div class="flex-1 h-1 rounded-full bg-cyan-500/40"></div>
+                                        <div class="flex-1 h-1 rounded-full bg-cyan-500/20"></div>
+                                        <div class="flex-1 h-1 rounded-full bg-cyan-500/30"></div>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div
+                                        class="flex items-center gap-2 p-2 rounded-[6px] bg-white/5 hover:bg-white/10 transition-colors cursor-pointer">
+                                        <div
+                                            class="w-6 h-6 rounded-[4px] bg-cyan-500/20 flex items-center justify-center text-[8px] text-cyan-400">
+                                            94%</div>
+                                        <div class="flex-1">
+                                            <div class="text-[10px] text-cleantech-200">相似案件: 网络诈骗系列案</div>
+                                            <div class="text-[8px] text-cleantech-500">2023-08 · 已结案</div>
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-2 p-2 rounded-[6px] bg-white/5 hover:bg-white/10 transition-colors cursor-pointer">
+                                        <div
+                                            class="w-6 h-6 rounded-[4px] bg-cyan-500/20 flex items-center justify-center text-[8px] text-cyan-400">
+                                            87%</div>
+                                        <div class="flex-1">
+                                            <div class="text-[10px] text-cleantech-200">相似案件: 跨境赌博案</div>
+                                            <div class="text-[8px] text-cleantech-500">2023-11 · 已结案</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute -bottom-3 -right-3 w-24 h-24 rounded-full bg-cyan-400/10 blur-2xl"></div>
+                </div>
+
+                <div class="space-y-6">
+                    <div
+                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-[8px] bg-cyan-500/10 border border-cyan-500/20">
+                        <div class="w-1.5 h-1.5 rounded-full bg-cyan-500"></div>
+                        <span class="text-cyan-600 text-xs font-medium">智能推荐</span>
+                    </div>
+                    <h3 class="text-[24px] font-semibold text-navy-900 leading-[1.3]">激活数据资产，辅助高效决策</h3>
+                    <p class="text-[14px] text-gray-600 leading-[1.6]">
+                        构建本地案卷知识库，利用 RAG（检索增强生成）技术，在民警进行案件研判的黄金阶段，自动推荐高相似度的历史典型案件。通过语义匹配与案例关联，将历史经验转化为实时决策支持。
+                    </p>
+                    <div class="flex gap-4 pt-2">
+                        <div class="flex items-center gap-2 text-[12px] text-gray-500">
+                            <div class="w-4 h-4 rounded-[4px] bg-cyan-500/20 flex items-center justify-center">
+                                <svg class="w-2.5 h-2.5 text-cyan-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            向量检索
+                        </div>
+                        <div class="flex items-center gap-2 text-[12px] text-gray-500">
+                            <div class="w-4 h-4 rounded-[4px] bg-cyan-500/20 flex items-center justify-center">
+                                <svg class="w-2.5 h-2.5 text-cyan-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            语义匹配
+                        </div>
+                        <div class="flex items-center gap-2 text-[12px] text-gray-500">
+                            <div class="w-4 h-4 rounded-[4px] bg-cyan-500/20 flex items-center justify-center">
+                                <svg class="w-2.5 h-2.5 text-cyan-500" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                            实时推荐
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: Design & Interface Highlights -->
+    <section class="bg-white py-24">
+        <div class="max-w-[1200px] mx-auto px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-[24px] font-semibold text-navy-900 mb-3">界面设计亮点</h2>
+                <div class="w-12 h-0.5 bg-cyan-500 mx-auto"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-8">
+                <!-- Grid Item 1 -->
+                <div
+                    class="group rounded-[16px] overflow-hidden bg-cleantech-50 border border-cleantech-200/60 hover:card-shadow-hover transition-all duration-300">
+                    <div class="h-56 bg-gradient-to-br from-navy-800 to-navy-700 p-6 relative overflow-hidden">
+                        <div class="tech-grid absolute inset-0 opacity-30"></div>
+                        <!-- Dashboard Mockup -->
+                        <div class="relative h-full flex gap-4">
+                            <div class="w-1/3 space-y-3">
+                                <div class="h-20 rounded-[8px] bg-navy-900/80 border border-white/10 p-3">
+                                    <div class="text-[8px] text-cleantech-400 mb-1">待办漏斗</div>
+                                    <div class="space-y-1">
+                                        <div class="h-1.5 rounded-full bg-cyan-500/60 w-full"></div>
+                                        <div class="h-1.5 rounded-full bg-cyan-500/40 w-3/4"></div>
+                                        <div class="h-1.5 rounded-full bg-cyan-500/20 w-1/2"></div>
+                                    </div>
+                                </div>
+                                <div class="h-24 rounded-[8px] bg-navy-900/80 border border-white/10 p-3">
+                                    <div class="text-[8px] text-cleantech-400 mb-2">案件类型</div>
+                                    <div class="flex items-end gap-1 h-12">
+                                        <div class="flex-1 bg-cyan-500/60 rounded-t-[2px]" style="height: 60%"></div>
+                                        <div class="flex-1 bg-cyan-500/40 rounded-t-[2px]" style="height: 80%"></div>
+                                        <div class="flex-1 bg-cyan-500/30 rounded-t-[2px]" style="height: 40%"></div>
+                                        <div class="flex-1 bg-cyan-500/20 rounded-t-[2px]" style="height: 100%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex-1 space-y-3">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="h-14 rounded-[8px] bg-cyan-500/15 border border-cyan-500/20 p-2">
+                                        <div class="text-[16px] text-cyan-400 font-bold">128</div>
+                                        <div class="text-[8px] text-cleantech-400">承办</div>
+                                    </div>
+                                    <div class="h-14 rounded-[8px] bg-yellow-500/15 border border-yellow-500/20 p-2">
+                                        <div class="text-[16px] text-yellow-400 font-bold">86</div>
+                                        <div class="text-[8px] text-cleantech-400">在办</div>
+                                    </div>
+                                    <div class="h-14 rounded-[8px] bg-green-500/15 border border-green-500/20 p-2">
+                                        <div class="text-[16px] text-green-400 font-bold">342</div>
+                                        <div class="text-[8px] text-cleantech-400">办结</div>
+                                    </div>
+                                </div>
+                                <div class="h-28 rounded-[8px] bg-navy-900/80 border border-white/10 p-3">
+                                    <div class="text-[8px] text-cleantech-400 mb-2">数据录入态势</div>
+                                    <svg class="w-full h-16" viewBox="0 0 200 60">
+                                        <polyline fill="none" stroke="#00bcd4" stroke-width="1.5"
+                                            points="0,45 30,35 60,40 90,25 120,30 150,15 180,20 200,10" />
+                                        <circle cx="150" cy="15" r="3" fill="#00bcd4" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-[16px] font-semibold text-navy-900 mb-2">千人千面工作台</h3>
+                        <p class="text-[14px] text-gray-600 leading-[1.6]">
+                            采用模块化聚合布局，直观展示"承办、在办、办结"核心指标；左侧辅以漏斗待办，下方融合案件类型分布饼图与数据录入态势折线图。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Grid Item 2 -->
+                <div
+                    class="group rounded-[16px] overflow-hidden bg-cleantech-50 border border-cleantech-200/60 hover:card-shadow-hover transition-all duration-300">
+                    <div class="h-56 bg-gradient-to-br from-navy-800 to-navy-700 p-6 relative overflow-hidden">
+                        <div class="tech-grid absolute inset-0 opacity-30"></div>
+                        <!-- Card Grid Mockup -->
+                        <div class="relative h-full space-y-3">
+                            <div class="flex gap-2 mb-3">
+                                <div class="px-2 py-1 rounded-[4px] bg-cyan-500/20 text-cyan-400 text-[8px]">专项行动</div>
+                                <div class="px-2 py-1 rounded-[4px] bg-white/5 text-cleantech-400 text-[8px]">时间范围</div>
+                                <div class="px-2 py-1 rounded-[4px] bg-white/5 text-cleantech-400 text-[8px]">案件类型</div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="h-16 rounded-[6px] bg-navy-900/80 border border-white/10 p-2">
+                                    <div class="flex items-center gap-1 mb-1">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-red-400"></div>
+                                        <span class="text-[8px] text-cleantech-300">紧急</span>
+                                    </div>
+                                    <div class="text-[9px] text-cleantech-200 truncate">网络诈骗团伙案</div>
+                                    <div class="text-[7px] text-cleantech-500 mt-1">2024-03-15</div>
+                                </div>
+                                <div class="h-16 rounded-[6px] bg-navy-900/80 border border-white/10 p-2">
+                                    <div class="flex items-center gap-1 mb-1">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-yellow-400"></div>
+                                        <span class="text-[8px] text-cleantech-300">高</span>
+                                    </div>
+                                    <div class="text-[9px] text-cleantech-200 truncate">跨境赌博案</div>
+                                    <div class="text-[7px] text-cleantech-500 mt-1">2024-03-14</div>
+                                </div>
+                                <div class="h-16 rounded-[6px] bg-navy-900/80 border border-white/10 p-2">
+                                    <div class="flex items-center gap-1 mb-1">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-green-400"></div>
+                                        <span class="text-[8px] text-cleantech-300">普通</span>
+                                    </div>
+                                    <div class="text-[9px] text-cleantech-200 truncate">信息泄露案</div>
+                                    <div class="text-[7px] text-cleantech-500 mt-1">2024-03-12</div>
+                                </div>
+                                <div class="h-16 rounded-[6px] bg-navy-900/80 border border-white/10 p-2">
+                                    <div class="flex items-center gap-1 mb-1">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-yellow-400"></div>
+                                        <span class="text-[8px] text-cleantech-300">高</span>
+                                    </div>
+                                    <div class="text-[9px] text-cleantech-200 truncate">电信诈骗案</div>
+                                    <div class="text-[7px] text-cleantech-500 mt-1">2024-03-10</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-[16px] font-semibold text-navy-900 mb-2">卡片式情报初查</h3>
+                        <p class="text-[14px] text-gray-600 leading-[1.6]">
+                            针对"情报初查"场景设计高信息密度的卡片阵列流，支持多维度筛选项（专项行动、时间、类型）联动快速检索。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Grid Item 3 -->
+                <div
+                    class="group rounded-[16px] overflow-hidden bg-cleantech-50 border border-cleantech-200/60 hover:card-shadow-hover transition-all duration-300">
+                    <div class="h-56 bg-gradient-to-br from-navy-800 to-navy-700 p-6 relative overflow-hidden">
+                        <div class="tech-grid absolute inset-0 opacity-30"></div>
+                        <!-- Case Detail with Graph -->
+                        <div class="relative h-full space-y-2">
+                            <div class="flex items-center gap-2 pb-2 border-b border-white/10">
+                                <span class="text-[10px] text-white font-medium">案件详情</span>
+                                <div class="flex gap-1 ml-auto">
+                                    <div class="w-5 h-5 rounded-[4px] bg-cyan-500/20 flex items-center justify-center">
+                                        <svg class="w-2.5 h-2.5 text-cyan-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                class="h-32 rounded-[8px] bg-navy-900/60 border border-white/5 relative overflow-hidden">
+                                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 280 120">
+                                    <!-- Central node -->
+                                    <circle cx="140" cy="60" r="8" fill="#00bcd4" />
+                                    <text x="140" y="85" text-anchor="middle" fill="#94a3b8" font-size="7">案件名称</text>
+                                    <!-- Connected nodes -->
+                                    <circle cx="80" cy="30" r="5" fill="#3d6a9e" />
+                                    <text x="80" y="22" text-anchor="middle" fill="#94a3b8" font-size="6">涉案人:李三</text>
+                                    <line x1="132" y1="54" x2="85" y2="35" stroke="#00bcd4" stroke-width="0.8"
+                                        opacity="0.5" />
+
+                                    <circle cx="200" cy="35" r="5" fill="#3d6a9e" />
+                                    <text x="200" y="27" text-anchor="middle" fill="#94a3b8" font-size="6">即时通信</text>
+                                    <line x1="148" y1="54" x2="195" y2="40" stroke="#00bcd4" stroke-width="0.8"
+                                        opacity="0.5" />
+
+                                    <circle cx="70" cy="90" r="5" fill="#3d6a9e" />
+                                    <text x="70" y="105" text-anchor="middle" fill="#94a3b8"
+                                        font-size="6">涉案人:不详_1</text>
+                                    <line x1="134" y1="68" x2="75" y2="85" stroke="#00bcd4" stroke-width="0.8"
+                                        opacity="0.5" />
+
+                                    <circle cx="210" cy="85" r="5" fill="#3d6a9e" />
+                                    <text x="210" y="100" text-anchor="middle" fill="#94a3b8" font-size="6">电子邮件</text>
+                                    <line x1="146" y1="68" x2="205" y2="80" stroke="#00bcd4" stroke-width="0.8"
+                                        opacity="0.5" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-[16px] font-semibold text-navy-900 mb-2">结构化案件详情</h3>
+                        <p class="text-[14px] text-gray-600 leading-[1.6]">
+                            采用"顶部全局操作区 + 核心信息看板 + Tab标签切片"框架。最下方融入"线索关系图谱"，将涉案人员、邮箱、即时通信等错综复杂的关系链进行可视化网络拓扑展示。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Grid Item 4 -->
+                <div
+                    class="group rounded-[16px] overflow-hidden bg-cleantech-50 border border-cleantech-200/60 hover:card-shadow-hover transition-all duration-300">
+                    <div class="h-56 bg-gradient-to-br from-navy-800 to-navy-700 p-6 relative overflow-hidden">
+                        <div class="tech-grid absolute inset-0 opacity-30"></div>
+                        <!-- Analytics Dashboard -->
+                        <div class="relative h-full space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] text-white font-medium">数据态势</span>
+                                <div class="flex gap-1">
+                                    <div class="px-2 py-0.5 rounded-[3px] bg-cyan-500/20 text-cyan-400 text-[7px]">月
+                                    </div>
+                                    <div class="px-2 py-0.5 rounded-[3px] bg-white/5 text-cleantech-400 text-[7px]">季
+                                    </div>
+                                    <div class="px-2 py-0.5 rounded-[3px] bg-white/5 text-cleantech-400 text-[7px]">年
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 h-36">
+                                <div class="rounded-[8px] bg-navy-900/80 border border-white/10 p-3">
+                                    <div class="text-[8px] text-cleantech-400 mb-2">受案量总览</div>
+                                    <div class="flex items-end gap-1 h-20">
+                                        <div class="flex-1 bg-cyan-500/50 rounded-t-[2px]" style="height: 40%"></div>
+                                        <div class="flex-1 bg-cyan-500/50 rounded-t-[2px]" style="height: 60%"></div>
+                                        <div class="flex-1 bg-cyan-500/50 rounded-t-[2px]" style="height: 30%"></div>
+                                        <div class="flex-1 bg-cyan-500/50 rounded-t-[2px]" style="height: 80%"></div>
+                                        <div class="flex-1 bg-cyan-500/50 rounded-t-[2px]" style="height: 50%"></div>
+                                        <div class="flex-1 bg-cyan-500/50 rounded-t-[2px]" style="height: 90%"></div>
+                                    </div>
+                                </div>
+                                <div class="rounded-[8px] bg-navy-900/80 border border-white/10 p-3">
+                                    <div class="text-[8px] text-cleantech-400 mb-2">侦破率走势</div>
+                                    <svg class="w-full h-20" viewBox="0 0 100 60">
+                                        <polyline fill="none" stroke="#00bcd4" stroke-width="1.5"
+                                            points="0,50 20,40 40,45 60,30 80,35 100,20" />
+                                        <circle cx="100" cy="20" r="2" fill="#00bcd4" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-[16px] font-semibold text-navy-900 mb-2">多维全景数据态势</h3>
+                        <p class="text-[14px] text-gray-600 leading-[1.6]">
+                            为管理层设计的分析报表，支持多颗粒度切换，采用受案量总览（柱状图）、办结对比（双柱图）以及侦破率走势（曲线图）三层架构。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 5: Key Results -->
+    <section class="bg-navy-900 py-24 relative overflow-hidden">
+        <div class="hero-glow top-[-200px] left-[-100px]"></div>
+        <div class="hero-glow bottom-[-200px] right-[-100px]"></div>
+
+        <div class="max-w-[1200px] mx-auto px-8 relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-[24px] font-semibold text-white mb-3">项目成果</h2>
+                <div class="w-12 h-0.5 bg-cyan-500 mx-auto"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-12">
+                <!-- Metric 1 -->
+                <div class="metric-card rounded-[16px] p-10 text-center">
+                    <div class="text-[48px] font-bold text-cyan-400 number-glow mb-4 font-mono">40%</div>
+                    <div class="text-[16px] text-white font-medium mb-3">案件整体研判效率提升</div>
+                    <p class="text-[14px] text-cleantech-400 leading-[1.6] max-w-[320px] mx-auto">
+                        通过大模型结构化提取与历史案卷智能辅助决策，有效缩减决策路径，将平均研判周期从5天缩短至3天。
+                    </p>
+                    <div class="mt-6 flex items-center justify-center gap-2">
+                        <div class="h-1 w-16 rounded-full bg-cyan-500/30 overflow-hidden">
+                            <div class="h-full w-[40%] bg-cyan-400 rounded-full"></div>
+                        </div>
+                        <span class="text-[10px] text-cyan-400">效率指标</span>
+                    </div>
+                </div>
+
+                <!-- Metric 2 -->
+                <div class="metric-card rounded-[16px] p-10 text-center">
+                    <div class="text-[36px] font-bold text-cyan-400 number-glow mb-4 font-mono tracking-wide">
+                        Standardized</div>
+                    <div class="text-[16px] text-white font-medium mb-3">集团 OA 业务平台化</div>
+                    <p class="text-[14px] text-cleantech-400 leading-[1.6] max-w-[320px] mx-auto">
+                        非标业务配置效率大幅提升，沉淀了高复用的通用功能组件，新业务上线周期从4周缩短至3天。
+                    </p>
+                    <div class="mt-6 flex items-center justify-center gap-3">
+                        <div class="flex items-center gap-1">
+                            <div class="w-2 h-2 rounded-full bg-cyan-400"></div>
+                            <span class="text-[10px] text-cleantech-400">权限中台</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <div class="w-2 h-2 rounded-full bg-cyan-400"></div>
+                            <span class="text-[10px] text-cleantech-400">审批引擎</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <div class="w-2 h-2 rounded-full bg-cyan-400"></div>
+                            <span class="text-[10px] text-cleantech-400">表单中心</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-navy-900 border-t border-white/5 py-8">
+        <div class="max-w-[1200px] mx-auto px-8 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-6 h-6 rounded-[4px] bg-gradient-to-br from-cyan-500 to-navy-600 flex items-center justify-center">
+                    <span class="text-white text-[8px] font-bold font-mono">PM</span>
+                </div>
+                <span class="text-cleantech-400 text-sm">产品经理作品集 © 2024</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <a href="mailto:contact@example.com"
+                    class="text-cleantech-500 hover:text-cyan-400 text-sm transition-colors">联系邮箱</a>
+                <a href="#" class="text-cleantech-500 hover:text-cyan-400 text-sm transition-colors">LinkedIn</a>
+                <a href="#" class="text-cleantech-500 hover:text-cyan-400 text-sm transition-colors">简历下载</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>

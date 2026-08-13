@@ -3,6 +3,7 @@ USE spider_db;
 
 CREATE TABLE IF NOT EXISTS job_info (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    job_id VARCHAR(100) UNIQUE,
     main_category VARCHAR(100),
     sub_category VARCHAR(100),
     job_name VARCHAR(100) NOT NULL,
@@ -18,6 +19,17 @@ CREATE TABLE IF NOT EXISTS job_info (
     job_education VARCHAR(50),
     job_tag_list TEXT,
     search_keyword VARCHAR(100),
+    post_description TEXT,
+    deliver_status VARCHAR(50),
+    filter_reason VARCHAR(255),
+    ai_score INT,
+    ai_reason TEXT,
+    longitude DOUBLE,
+    latitude DOUBLE,
+    address_detail VARCHAR(255),
+    boss_name VARCHAR(100),
+    boss_title VARCHAR(100),
+    boss_active VARCHAR(100),
     create_time DATE,
     UNIQUE KEY idx_job_company (job_name, job_company, job_area) 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

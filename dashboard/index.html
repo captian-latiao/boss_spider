@@ -155,109 +155,274 @@
         <!-- MAIN CONTENT AREA -->
         <main class="main-content">
 
-            <!-- Top Controls & Key Metrics -->
-            <header class="top-bar stagger-2">
-                <div class="metric-card">
-                    <span class="metric-title">全量数据池 (Total Records)</span>
-                    <strong class="metric-value" id="val-total">...</strong>
-                    <div class="metric-trend up">+ LIVE</div>
-                </div>
-                <div class="metric-card">
-                    <span class="metric-title">薪资中位数 (Median Salary)</span>
-                    <strong class="metric-value" id="val-salary">...</strong>
-                    <div class="metric-trend stable">稳定</div>
-                </div>
-                <div class="metric-card">
-                    <span class="metric-title">高频集散地 (Top Regional Hub)</span>
-                    <strong class="metric-value" id="val-city">...</strong>
-                    <div class="metric-trend up">热门</div>
-                </div>
-            </header>
+            <!-- Tab Navigation Header -->
+            <div class="tab-navigation stagger-2">
+                <button id="btn-tab-market" class="tab-button active" onclick="switchTab('market')">
+                    <span class="tab-en">Market Spectrum</span>
+                    <span class="tab-zh">全量市场大盘</span>
+                </button>
+                <button id="btn-tab-personal" class="tab-button" onclick="switchTab('personal')">
+                    <span class="tab-en">Delivery Analytics</span>
+                    <span class="tab-zh">个人投递分析</span>
+                </button>
+            </div>
 
-            <!-- Dense Data Grid -->
-            <div class="data-grid">
+            <!-- MARKET TAB VIEW -->
+            <div id="tab-market-view" class="tab-view-content active">
+                <!-- Top Controls & Key Metrics -->
+                <header class="top-bar stagger-2">
+                    <div class="metric-card">
+                        <span class="metric-title">全量数据池 (Total Records)</span>
+                        <strong class="metric-value" id="val-total">...</strong>
+                        <div class="metric-trend up">+ LIVE</div>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">薪资中位数 (Median Salary)</span>
+                        <strong class="metric-value" id="val-salary">...</strong>
+                        <div class="metric-trend stable">稳定</div>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">高频集散地 (Top Regional Hub)</span>
+                        <strong class="metric-value" id="val-city">...</strong>
+                        <div class="metric-trend up">热门</div>
+                    </div>
+                </header>
 
-                <!-- Main Salary Spectrum Chart -->
-                <div class="panel panel-large stagger-3">
-                    <div class="panel-header"
-                        style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div class="bilingual-title" style="margin-bottom:0;">
-                            <span class="bilingual-en">Spectrum</span>
-                            <span class="bilingual-zh">薪资极化</span>
+                <!-- Dense Data Grid -->
+                <div class="data-grid">
+
+                    <!-- Main Salary Spectrum Chart -->
+                    <div class="panel panel-large stagger-3">
+                        <div class="panel-header"
+                            style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div class="bilingual-title" style="margin-bottom:0;">
+                                <span class="bilingual-en">Spectrum</span>
+                                <span class="bilingual-zh">薪资极化</span>
+                            </div>
+                            <button id="btn-filter-intern"
+                                style="background:transparent; border:1px solid rgba(205,163,97,0.4); border-radius:4px; padding:2px 8px; font-size:0.8rem; font-family:'Noto Serif SC',serif; color:var(--accent-amber); cursor:pointer; transition:all 0.2s; margin-top:5px;">
+                                实习
+                            </button>
                         </div>
-                        <button id="btn-filter-intern"
-                            style="background:transparent; border:1px solid rgba(205,163,97,0.4); border-radius:4px; padding:2px 8px; font-size:0.8rem; font-family:'Noto Serif SC',serif; color:var(--accent-amber); cursor:pointer; transition:all 0.2s; margin-top:5px;">
-                            实习
-                        </button>
+                        <div class="chart-wrapper line-chart-wrapper" id="chart-salary"></div>
                     </div>
-                    <div class="chart-wrapper line-chart-wrapper" id="chart-salary"></div>
-                </div>
 
-                <!-- Geographic Rose Chart -->
-                <div class="panel panel-medium stagger-4">
-                    <div class="panel-header">
-                        <div class="bilingual-title">
-                            <span class="bilingual-en">Geography</span>
-                            <span class="bilingual-zh">区域热点</span>
+                    <!-- Geographic Rose Chart -->
+                    <div class="panel panel-medium stagger-4">
+                        <div class="panel-header">
+                            <div class="bilingual-title">
+                                <span class="bilingual-en">Geography</span>
+                                <span class="bilingual-zh">区域热点</span>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper" id="chart-geo"></div>
+                    </div>
+
+                    <!-- Company Finance Donut -->
+                    <div class="panel panel-medium stagger-5">
+                        <div class="panel-header">
+                            <div class="bilingual-title">
+                                <span class="bilingual-en">Ecosystem</span>
+                                <span class="bilingual-zh">资本生态</span>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper donut-wrapper" id="chart-finance"></div>
+                    </div>
+
+                    <!-- Company hiring volume vs Scale (Scatter) -->
+                    <div class="panel panel-medium stagger-6">
+                        <div class="panel-header">
+                            <div class="bilingual-title">
+                                <span class="bilingual-en">Hiring Scale</span>
+                                <span class="bilingual-zh">规模倒挂</span>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper" id="chart-hiring-scale"></div>
+                    </div>
+
+                    <!-- Domain Taxonomy (Dual Axis - Volume & Salary) -->
+                    <div class="panel panel-medium stagger-7">
+                        <div class="panel-header">
+                            <div class="bilingual-title">
+                                <span class="bilingual-en">Taxonomy</span>
+                                <span class="bilingual-zh">黄金赛道</span>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper" id="chart-subdomain"></div>
+                    </div>
+
+                    <!-- Expanded Welfare Tags at the bottom to save chart space -->
+                    <div class="panel panel-bottom stagger-8">
+                        <div class="panel-header" style="margin-bottom:0.5rem">
+                            <div class="bilingual-title">
+                                <span class="bilingual-en">Welfare</span>
+                                <span class="bilingual-zh">福利</span>
+                            </div>
+                        </div>
+                        <div class="tag-masonry" id="tags-container">
+                            <!-- Filled by JS -->
                         </div>
                     </div>
-                    <div class="chart-wrapper" id="chart-geo"></div>
-                </div>
 
-                <!-- Company Finance Donut -->
-                <div class="panel panel-medium stagger-5">
-                    <div class="panel-header">
-                        <div class="bilingual-title">
-                            <span class="bilingual-en">Ecosystem</span>
-                            <span class="bilingual-zh">资本生态</span>
+                </div>
+            </div>
+
+            <!-- PERSONAL TAB VIEW -->
+            <div id="tab-personal-view" class="tab-view-content">
+                
+                <!-- Controls & Period Filter -->
+                <div class="personal-controls stagger-2" style="display: flex; gap: 2rem; background: var(--panel-bg); backdrop-filter: blur(20px); border: var(--border-glass); border-radius: var(--radius-soft); padding: 1rem 1.5rem; box-shadow: var(--shadow-warm); align-items: center; justify-content: space-between;">
+                    <div style="display: flex; gap: 1.5rem;">
+                        <div class="filter-group" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="filter-label" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">日期范围：</span>
+                            <input type="date" id="start-date-input" style="background: rgba(255,255,255,0.8); border: 1px solid rgba(205,163,97,0.3); border-radius: 6px; padding: 4px 8px; font-size: 0.85rem; font-family: var(--font-sans); color: var(--text-dark); outline: none;">
+                            <span style="font-size: 0.85rem; color: var(--text-muted);">至</span>
+                            <input type="date" id="end-date-input" style="background: rgba(255,255,255,0.8); border: 1px solid rgba(205,163,97,0.3); border-radius: 6px; padding: 4px 8px; font-size: 0.85rem; font-family: var(--font-sans); color: var(--text-dark); outline: none;">
+                        </div>
+                        <div class="filter-group" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="filter-label" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">趋势维度：</span>
+                            <div class="dimension-toggle" style="display: flex; background: rgba(0,0,0,0.03); padding: 2px; border-radius: 20px;">
+                                <button id="btn-dim-day" class="dim-btn active" style="font-size: 0.75rem; padding: 4px 12px; border: none; border-radius: 16px; cursor: pointer; color: var(--text-muted); background: #fff; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.2s;">日 (Daily)</button>
+                                <button id="btn-dim-week" class="dim-btn" style="font-size: 0.75rem; padding: 4px 12px; border: none; border-radius: 16px; cursor: pointer; color: var(--text-muted); background: transparent; transition: all 0.2s;">周 (Weekly)</button>
+                            </div>
                         </div>
                     </div>
-                    <div class="chart-wrapper donut-wrapper" id="chart-finance"></div>
                 </div>
 
-                <!-- Company hiring volume vs Scale (Scatter) -->
-                <div class="panel panel-medium stagger-6">
-                    <div class="panel-header">
-                        <div class="bilingual-title">
-                            <span class="bilingual-en">Hiring Scale</span>
-                            <span class="bilingual-zh">规模倒挂</span>
+                <header class="top-bar stagger-2" style="margin-top: 1.5rem;">
+                    <div class="metric-card">
+                        <span class="metric-title">处理岗位总数 (Processed)</span>
+                        <strong class="metric-value" id="personal-val-total">0</strong>
+                        <div class="metric-trend up">+ LIVE</div>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">简历投递比率 (Apply Ratio)</span>
+                        <strong class="metric-value" id="personal-val-rate">0%</strong>
+                        <div class="metric-trend stable" id="personal-val-success-count" style="font-size: 0.75rem;">0 次成功</div>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-title">简历市场匹配度 (Resume Fit)</span>
+                        <strong class="metric-value" id="personal-val-match">0%</strong>
+                        <div class="metric-trend up" id="personal-val-match-status" style="font-size: 0.75rem;">等待载入</div>
+                    </div>
+                </header>
+
+                <div class="data-grid" style="margin-top: 1.5rem;">
+                    <!-- Funnel & Donut charts side by side -->
+                    <div class="panel panel-medium stagger-3">
+                        <div class="panel-header">
+                            <div class="bilingual-title">
+                                <span class="bilingual-en">Delivery Funnel</span>
+                                <span class="bilingual-zh">投递漏斗</span>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper" id="personal-chart-funnel"></div>
+                    </div>
+
+                    <div class="panel panel-medium stagger-3">
+                        <div class="panel-header">
+                            <div class="bilingual-title">
+                                <span class="bilingual-en">Filter Attribution</span>
+                                <span class="bilingual-zh">拦截原因归因</span>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper" id="personal-chart-attribution"></div>
+                    </div>
+
+                    <!-- Daily/Weekly Trends -->
+                    <div class="panel panel-large stagger-4" style="height: 380px;">
+                        <div class="panel-header">
+                            <div class="bilingual-title">
+                                <span class="bilingual-en">Application Trend</span>
+                                <span class="bilingual-zh">日度/周度投递走势</span>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper" id="personal-chart-trend"></div>
+                    </div>
+
+                    <!-- Applied vs Filtered Profile Group Bar -->
+                    <div class="panel panel-large stagger-5" style="height: 380px;">
+                        <div class="panel-header">
+                            <div class="bilingual-title">
+                                <span class="bilingual-en">Profiles Contrast</span>
+                                <span class="bilingual-zh">成功投递 vs 过滤岗位画像对比 (薪资年限)</span>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper" id="personal-chart-contrast"></div>
+                    </div>
+
+                    <!-- Left: Potential False Positives List, Right: Resume Optimization Suggestions -->
+                    <div class="panel panel-medium stagger-6" style="height: 420px;">
+                        <div class="panel-header">
+                            <div class="bilingual-title">
+                                <span class="bilingual-en">False Positives</span>
+                                <span class="bilingual-zh">规则误拦截回溯（潜在良性产品岗）</span>
+                            </div>
+                        </div>
+                        <div class="table-container" style="overflow-y: auto; flex-grow: 1; margin-top: 0.5rem;">
+                            <table class="museum-table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid rgba(205,163,97,0.3); color: var(--text-muted);">
+                                        <th style="padding: 8px 12px;">公司</th>
+                                        <th style="padding: 8px 12px;">职位</th>
+                                        <th style="padding: 8px 12px;">拦截原因</th>
+                                        <th style="padding: 8px 12px; text-align: center;">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="false-positives-list">
+                                    <tr>
+                                        <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 4rem 0;">载入数据中...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                    <div class="chart-wrapper" id="chart-hiring-scale"></div>
-                </div>
 
-                <!-- Domain Taxonomy (Dual Axis - Volume & Salary) -->
-                <div class="panel panel-medium stagger-7">
-                    <div class="panel-header">
-                        <div class="bilingual-title">
-                            <span class="bilingual-en">Taxonomy</span>
-                            <span class="bilingual-zh">黄金赛道</span>
+                    <div class="panel panel-medium stagger-6" style="height: 420px;">
+                        <div class="panel-header">
+                            <div class="bilingual-title">
+                                <span class="bilingual-en">Resume Optimization</span>
+                                <span class="bilingual-zh">JD 词频洞察与简历优化建议</span>
+                            </div>
+                        </div>
+                        <div class="resume-insights-wrapper" style="overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; margin-top: 0.5rem;">
+                            <div class="insight-score-row" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                                <div class="score-card" style="flex: 1; text-align: center; padding: 10px; background: rgba(0,0,0,0.02); border: 1px solid rgba(205,163,97,0.1); border-radius: 8px;">
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">高频技能词覆盖率</div>
+                                    <div id="resume-matched-count" style="font-size: 1.8rem; font-weight: 700; color: var(--accent-amber); margin-top: 4px;">0 / 0</div>
+                                </div>
+                            </div>
+                            <div class="insight-section" style="flex-grow: 1; display: flex; flex-direction: column;">
+                                <h4 class="section-title" style="font-size: 0.85rem; font-weight: 600; color: var(--text-dark);">💡 简历待补充的高频市场热词：</h4>
+                                <ul class="insight-list" id="resume-suggestions-list" style="margin-left: 1.2rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; padding-bottom: 1rem;">
+                                    <li>正在读取并比对 resume.md 简历内容...</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
-                    <div class="chart-wrapper" id="chart-subdomain"></div>
                 </div>
-
-                <!-- Expanded Welfare Tags at the bottom to save chart space -->
-                <div class="panel panel-bottom stagger-8">
-                    <div class="panel-header" style="margin-bottom:0.5rem">
-                        <div class="bilingual-title">
-                            <span class="bilingual-en">Penetration</span>
-                            <span class="bilingual-zh">长尾边际</span>
-                        </div>
-                    </div>
-                    <div class="tag-masonry" id="tags-container">
-                        <!-- Filled by JS -->
-                    </div>
-                </div>
-
             </div>
 
         </main>
     </div>
 
+    <!-- JD Detail Modal -->
+    <div id="jd-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(42,37,34,0.6); backdrop-filter: blur(8px); z-index: 1000; justify-content: center; align-items: center; transition: all 0.3s ease;">
+        <div class="modal-card" style="background: var(--bg-cream); width: 80%; max-width: 700px; height: 80%; max-height: 600px; border-radius: var(--radius-soft); border: var(--border-glass); box-shadow: 0 24px 60px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden; animation: fadeIn 0.4s ease-out;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 1.5rem; border-bottom: 1px solid rgba(205,163,97,0.2);">
+                <h3 id="modal-title" style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--text-dark); margin: 0;">职位描述详情</h3>
+                <button class="close-btn" onclick="closeJdModal()" style="background: transparent; border: none; font-size: 1.8rem; color: var(--text-muted); cursor: pointer; line-height: 1;">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-content" style="flex-grow: 1; padding: 1.5rem; overflow-y: auto; font-size: 0.9rem; color: var(--text-dark); white-space: pre-wrap; line-height: 1.6; user-select: text;">
+                <!-- Content injected dynamically -->
+            </div>
+        </div>
+    </div>
+
     <!-- Data & App Logic -->
     <script src="data.js"></script>
     <script src="app.js"></script>
+    <script src="personal.js"></script>
 </body>
 
 </html>

@@ -465,3 +465,219 @@ h1 {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.2);
 }
+
+/* --- TAB NAVIGATION & ACTIVE STATES --- */
+.tab-navigation {
+  display: flex;
+  gap: 1.5rem;
+  border-bottom: 1px solid rgba(205, 163, 97, 0.2);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tab-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: all 0.3s ease;
+  position: relative;
+  outline: none;
+}
+
+.tab-button .tab-en {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.tab-button .tab-zh {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.tab-button.active .tab-zh {
+  color: var(--terracotta);
+}
+
+.tab-button.active .tab-en {
+  color: var(--accent-amber);
+}
+
+.tab-button::after {
+  content: '';
+  position: absolute;
+  bottom: -0.6rem;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: var(--terracotta);
+  transition: all 0.3s ease;
+}
+
+.tab-button.active::after {
+  width: 100%;
+}
+
+.tab-view-content {
+  display: none;
+}
+
+.tab-view-content.active {
+  display: block;
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* --- CUSTOM SELECTS & BUTTONS --- */
+.museum-select {
+  appearance: none;
+  background: rgba(255, 255, 255, 0.7) !important;
+  border: 1px solid rgba(205, 163, 97, 0.3) !important;
+  border-radius: 6px;
+  padding: 6px 30px 6px 12px !important;
+  font-size: 0.85rem;
+  font-family: var(--font-sans);
+  color: var(--text-dark);
+  outline: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23736b63' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 8px center !important;
+  background-size: 14px !important;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.museum-select:hover, .museum-select:focus {
+  border-color: var(--accent-amber) !important;
+  box-shadow: 0 0 0 3px rgba(216, 137, 34, 0.1);
+}
+
+.dim-btn {
+  font-size: 0.75rem;
+  padding: 4px 12px;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  color: var(--text-muted);
+  background: transparent;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.dim-btn.active {
+  color: var(--text-dark) !important;
+  background: #fff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05) !important;
+}
+
+/* --- MUSEUM TABLE STYLING --- */
+.museum-table th {
+  font-family: 'Noto Serif SC', serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-dark);
+  border-bottom: 2px solid rgba(205, 163, 97, 0.3);
+  padding: 10px 12px;
+}
+
+.museum-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(205, 163, 97, 0.1);
+  color: var(--text-dark);
+  vertical-align: middle;
+}
+
+.museum-table tr:hover td {
+  background: rgba(205, 163, 97, 0.05);
+}
+
+.museum-btn-small {
+  background: transparent;
+  border: 1px solid var(--ochre);
+  color: var(--text-dark);
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Noto Serif SC', serif;
+  transition: all 0.2s;
+}
+
+.museum-btn-small:hover {
+  background: var(--ochre);
+  color: #fff;
+  border-color: var(--ochre);
+}
+
+/* --- MODAL EFFECT STYLES --- */
+.modal-overlay {
+  transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+  display: flex !important;
+  opacity: 1;
+}
+
+.modal-card {
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.modal-overlay.active .modal-card {
+  transform: scale(1);
+}
+
+/* Custom list layout inside resume suggestions */
+.insight-list li {
+  list-style-type: none;
+  position: relative;
+  padding-left: 1rem;
+}
+
+.insight-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--accent-amber);
+  font-weight: bold;
+}
+
+/* --- INTERACTIVE RESUME ANNOTATIONS --- */
+.resume-highlight {
+  border-bottom: 2px dashed var(--accent-amber);
+  background: rgba(216, 137, 34, 0.04);
+  padding: 1px 2px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  display: inline;
+}
+
+.resume-highlight:hover {
+  background: rgba(216, 137, 34, 0.12);
+  border-bottom-style: solid;
+}
+
+.resume-highlight.active {
+  background: rgba(165, 79, 63, 0.1) !important;
+  border-bottom-color: var(--terracotta) !important;
+  color: var(--terracotta) !important;
+}
+
+.resume-highlight::after {
+  content: " 💡";
+  font-size: 0.75rem;
+  vertical-align: middle;
+}
