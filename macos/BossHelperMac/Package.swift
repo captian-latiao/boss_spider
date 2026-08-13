@@ -1,0 +1,24 @@
+// swift-tools-version: 5.9
+
+import PackageDescription
+
+let package = Package(
+    name: "BossHelperMac",
+    platforms: [
+        .macOS(.v14)
+    ],
+    products: [
+        .executable(name: "BossHelperMac", targets: ["BossHelperMac"])
+    ],
+    targets: [
+        .executableTarget(
+            name: "BossHelperMac",
+            path: "Sources/BossHelperMac"
+        ),
+        .testTarget(
+            name: "BossHelperMacTests",
+            dependencies: ["BossHelperMac"],
+            path: "Tests/BossHelperMacTests"
+        )
+    ]
+)

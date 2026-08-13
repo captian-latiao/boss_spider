@@ -1,56 +1,98 @@
-# boss_spider
+> [!CAUTION]
+> 本项目仅供学习交流，禁止用于商业用途
+>
+> 使用该脚本有一定风险(如黑号,封号,权重降低等)，本项目不承担任何责任
 
-本项目包含一个基于 Python 和 Selenium 编写的职位信息抓取脚本，以及一个基于 ECharts 的前端数据可视化看板。
+| Chrome                                                                                                                                                                                             | Crx搜搜                                                                                                                                           | Edge                                                                                                                                                                                                                                                                                                                           | FireFox                                                                                                                                   | Github                                                                                                                                |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/ogkmgjbagackkdlcibcailacnncgonbn?label=Chrome插件商店)](https://chrome.google.com/webstore/detail/ogkmgjbagackkdlcibcailacnncgonbn) | [![Crx 搜搜](https://img.shields.io/badge/Crx搜索-v%3F.%3F.%3F-EF7C3D)](https://www.crxsoso.com/webstore/detail/ogkmgjbagackkdlcibcailacnncgonbn) | [![Edge Web Store](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fjcllnbjfeamhihjpfjlclhdnjmggbgal&query=version&prefix=v&label=Edge插件商店&color=EF7C3D)](https://microsoftedge.microsoft.com/addons/detail/jcllnbjfeamhihjpfjlclhdnjmggbgal) | [![Firefox](https://img.shields.io/amo/v/boss-helper?label=Mozilla插件商店)](https://addons.mozilla.org/zh-TW/firefox/addon/boss-helper/) | [![GitHub Release](https://img.shields.io/github/v/release/Ocyss/boos-helper)](https://github.com/Ocyss/boos-helper/releases/latest/) |
 
-最初的设想来源于对已有开源爬虫脚本的学习，在发现部分脚本 DOM 定位失效或缺乏长期维护后，作者在原有思路上做了重构与优化。增加了多维度可控参数、基础反爬处理及图形化数据展示，旨在分享与交流技术方案。
+> **国内**: 如果无法访问 `Chrome插件商店` , 请使用 `Crx搜搜` 或 `Edge插件商店` 安装
 
-**声明：本项目代码仅供个人学习与技术交流使用，请勿用于商业用途或进行高频恶意抓取。**
+## 项目介绍
 
-## 核心功能
+Boss直聘助手, 皆在减少投递简历的麻烦, 和提高投递简历的效率, 技术栈使用WXT + Vue3 + element-plus, 开源在 Github 欢迎前来Pr
 
-### 1. 数据爬取 (`/spider`)
-使用 Selenium 进行动态网页模拟，将非结构化页面转化为结构化数据并持久化到 MySQL。
-- **自定义筛选**：支持设定目标城市 URL、岗位大类/子类（如“产品-产品经理”），并支持传入多个搜索关键字队列进行循环检索。
-- **反爬与健壮性**：主动去除 `AutomationControlled` 特征；代码运行时能自动检测并关闭页面随机弹出的登录提示弹窗。
-- **高度自动化**：支持按照配置的最大翻页限制自动拉取列表，结构化覆盖职位、公司规模、行业、融资阶段、薪资、福利标签及学历经验要求，并完成入库去重。
+> 本项目处于积极维护状态, 一直很忙所以拖了比较久才开源，抱歉了~
 
-### 2. 数据可视化 (`/dashboard`)
-一套轻量级的静态前端大屏应用，直观呈现并分析结构化后的职位数据。
-- **薪资与规模分析**：提供整体岗位的薪资分布柱状图，以及体现各阶段公司薪资方差和极值的箱线图。
-- **地域分布饼图**：通过内外两层嵌套玫瑰/饼图，直观展现目标行政区与进一步子商圈的职位聚集度及平均薪资。
-- **细分市场对比**：根据岗位名称和标签计算分类，双轴展示“企服/数据/AI”等细分方向的岗位数量和平均薪酬差距。
-- **福利词云与动态流**：支持高频福利词汇的交互筛选，并在侧边栏提供职位流模拟播报。
+## 相关链接
 
-## 快速开始
+Github开源地址: <https://github.com/ocyss/boos-helper>
 
-### 依赖环境
-本项目推荐在 Python 3.x 下运行，安装所需依赖包：
-```bash
-pip install -r requirements.txt
-```
+飞书反馈问卷(匿名): <https://gai06vrtbc0.feishu.cn/share/base/form/shrcnmEq2fxH9hM44hqEnoeaj8g>
 
-### 数据库配置
-1. 在本地 MySQL 环境中执行 `spider/init_db.sql` 脚本，创建 `spider_db` 数据库及表结构。
-2. 打开 `spider/bossspider.py`，根据实际情况修改 DBUtils 实例化时的数据库连接信息（默认为 `localhost`, `root`, `123456` 等）。
+> 每个提交都会给我发通知，我看见就会评论的形式回复 一般 1-2天
 
-### 运行爬虫
-```bash
-python spider/bossspider.py
-```
-> **注意**：脚本启动后请留意弹出的浏览器窗口，如果触发了反爬滑块或强制扫码登录验证，请在脚本预留的 30 秒等待期内手动完成。
+飞书问卷结果: <https://gai06vrtbc0.feishu.cn/share/base/view/shrcnrg8D0cbLQc89d7Jj7AZgMc>
 
-### 运行可视化看板
-建议通过静态文件服务器在 `dashboard` 根目录启动：
-```bash
-cd dashboard
-python3 -m http.server 8000
-```
-启动后在浏览器中访问 `http://localhost:8000` 即可查看项目看板。
+greasyfork地址(0.2旧版本): <https://greasyfork.org/zh-CN/scripts/491340>
 
-## 版本历史
-- [x] 新增可定义参数 - 职业类型与目标城市
-- [x] 新增自动化翻页控制
-- [x] 新增多关键字队列搜索扩展
-- [x] 优化目标元素定位方式，增加容错与稳定性
-- [x] 增加登录弹窗遮挡的自动识别与关闭
-- [x] 新增 ECharts 数据可视化洞察面板
+## 项目预览
+
+[![卡片状态](docs/img/shot_2024-04-14_23-08-03.png)](docs/img/shot_2024-04-14_23-08-03.png)
+[![账户配置](docs/img/shot_2024-04-14_23-09-05.png)](docs/img/shot_2024-04-14_23-09-05.png)
+[![统计界面](docs/img/shot_2024-04-02_22-25-25.png)](docs/img/shot_2024-04-02_22-25-25.png)
+[![配置界面](docs/img/shot_2024-04-02_22-26-54.png)](docs/img/shot_2024-04-02_22-26-54.png)
+[![日志界面](docs/img/shot_2024-04-02_22-32-25.png)](docs/img/shot_2024-04-02_22-32-25.png)
+
+## TODO
+
+- [x] 优化UI去除广告
+- [x] 批量投递简历
+- 高级筛选
+  - [x] 薪资,公司名,工作名,人数,内容简单筛选
+  - 公司地址相关
+    > 使用高德api，需要自行申请，或者使用关键字筛选, 暂时只有驾车和步行
+    - [x] 驾车/步行距离
+    - [x] 驾车/步行时间
+  - [ ] 公司风险评控
+  - [x] AI筛选
+- 自动打招呼
+  - [x] 模板语言
+  - [x] 支持chatGPT
+- AI赋能
+  - [ ] 自动回复聊天
+  - [x] 多模型管理
+- 额外功能(有时间会写)
+  - [ ] 暗黑模式 （停更中~）
+  - [x] 自适应UI适配手机
+  - [ ] 黑名单
+  - [x] 多账号管理
+  - [ ] 聊天屏蔽已读消息
+  - [ ] boss消息弹窗
+
+## 参与贡献
+
+1. Fork 本仓库并克隆到本地。
+2. 在新分支上进行您的更改：`git checkout -b 您的分支名称`
+3. 提交更改：`git commit -am '描述您的更改'`
+4. 推送更改到您的 Fork：`git push origin 您的分支名称`
+5. 提交 Pull 请求。
+
+## 鸣谢
+
+- <https://github.com/yangfeng20/boss_batch_push>
+- <https://github.com/lisonge/vite-plugin-monkey>
+- <https://github.com/chatanywhere/GPT_API_free>
+
+- <https://uiverse.io/>
+- <https://www.runoob.com/manual/mqtt/protocol/MQTT-3.1.1-CN.pdf>
+
+## 类似项目
+
+- <https://github.com/Frrrrrrrrank/auto_job__find__chatgpt__rpa>
+- <https://github.com/noBaldAaa/find-job>
+
+## 最后
+
+嗯...
+
+## Star 趋势
+
+<a href="https://star-history.com/#ocyss/boos-helper&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ocyss/boos-helper&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ocyss/boos-helper&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ocyss/boos-helper&type=Date" />
+ </picture>
+</a>

@@ -1,0 +1,422 @@
+from __future__ import annotations
+
+import json
+import sqlite3
+import threading
+from contextlib import contextmanager
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Iterable
+
+from .config import ensure_data_dir
+
+
+JOB_COLUMNS = [
+    "job_id",
+    "main_category",
+    "sub_category",
+    "job_name",
+    "job_area",
+    "job_company",
+    "job_industry",
+    "job_finance",
+    "job_scale",
+    "job_welfare",
+    "salary_range",
+    "salary_type",
+    "job_experience",
+    "job_education",
+    "job_tag_list",
+    "search_keyword",
+    "post_description",
+    "deliver_status",
+    "filter_reason",
+    "filter_detail",
+    "ai_score",
+    "ai_reason",
+    "longitude",
+    "latitude",
+    "address_detail",
+    "boss_name",
+    "boss_title",
+    "boss_active",
+    "create_time",
+    "source",
+    "ingested_at",
+]
+
+
+def _now() -> str:
+    return datetime.now().isoformat(timespec="seconds")
+
+
+class SQLiteStore:
+    def __init__(self, data_dir: str | Path):
+        self.data_dir = Path(ensure_data_dir(data_dir))
+        self.db_path = self.data_dir / "boss_helper.db"
+        self._lock = threading.RLock()
+        self.init_schema()
+
+    def _connect(self) -> sqlite3.Connection:
+        conn = sqlite3.connect(self.db_path, timeout=15)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA foreign_keys=ON")
+        return conn
+
+    @contextmanager
+    def _connection(self):
+        conn = self._connect()
+        try:
+            with conn:
+                yield conn
+        finally:
+            conn.close()
+
+    def init_schema(self) -> None:
+        jobs_columns = ", ".join(
+            [
+                f"{column} TEXT"
+                for column in JOB_COLUMNS
+                if column != "job_id"
+            ]
+        )
+        with self._lock, self._connection() as conn:
+            conn.execute(
+                f"""
+                CREATE TABLE IF NOT EXISTS jobs (
+                    job_id TEXT PRIMARY KEY,
+                    {jobs_columns}
+                )
+                """
+            )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS delivery_events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    job_id TEXT NOT NULL,
+                    deliver_status TEXT NOT NULL,
+                    filter_reason TEXT,
+                    filter_detail TEXT,
+                    event_time TEXT NOT NULL,
+                    raw_json TEXT
+                )
+                """
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_delivery_events_time "
+                "ON delivery_events(event_time)"
+            )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS crawl_runs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    state TEXT NOT NULL,
+                    started_at TEXT NOT NULL,
+                    finished_at TEXT,
+                    current_keyword TEXT,
+                    current_page INTEGER DEFAULT 0,
+                    scraped_count INTEGER DEFAULT 0,
+                    error_count INTEGER DEFAULT 0,
+                    last_message TEXT
+                )
+                """
+            )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS crawl_events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    run_id INTEGER NOT NULL,
+                    event_time TEXT NOT NULL,
+                    level TEXT NOT NULL,
+                    message TEXT NOT NULL
+                )
+                """
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_crawl_events_run "
+                "ON crawl_events(run_id, id)"
+            )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS app_config (
+                    config_type TEXT PRIMARY KEY,
+                    payload_json TEXT NOT NULL,
+                    delivery_limit INTEGER NOT NULL DEFAULT 120,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                )
+                """
+            )
+
+    def upsert_job(self, job: dict[str, Any], source: str) -> str | None:
+        job_id = str(job.get("job_id") or "").strip()
+        if not job_id:
+            return None
+
+        values = {
+            column: job.get(column, "")
+            for column in JOB_COLUMNS
+            if column != "job_id"
+        }
+        values["source"] = source
+        values["ingested_at"] = _now()
+
+        insert_columns = ["job_id", *values.keys()]
+        placeholders = ", ".join(["?" for _ in insert_columns])
+        update_assignments = []
+        for column in values:
+            if column in {"source", "ingested_at"}:
+                update_assignments.append(f"{column} = excluded.{column}")
+            else:
+                update_assignments.append(
+                    f"{column} = COALESCE(NULLIF(excluded.{column}, ''), jobs.{column})"
+                )
+
+        sql = (
+            f"INSERT INTO jobs ({', '.join(insert_columns)}) "
+            f"VALUES ({placeholders}) "
+            f"ON CONFLICT(job_id) DO UPDATE SET {', '.join(update_assignments)}"
+        )
+        args = [job_id, *[values[column] for column in values]]
+        with self._lock, self._connection() as conn:
+            conn.execute(sql, args)
+        return job_id
+
+    def insert_delivery_event(
+        self,
+        job_id: str,
+        deliver_status: str,
+        filter_reason: str = "",
+        filter_detail: str = "",
+        raw_json: str | None = None,
+    ) -> None:
+        with self._lock, self._connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO delivery_events (
+                    job_id, deliver_status, filter_reason, filter_detail,
+                    event_time, raw_json
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    job_id,
+                    deliver_status or "pending",
+                    filter_reason or "",
+                    filter_detail or "",
+                    _now(),
+                    raw_json or "",
+                ),
+            )
+
+    def get_today_metrics(self, today: str | None = None) -> dict[str, Any]:
+        date_key = today or datetime.now().strftime("%Y-%m-%d")
+        with self._lock, self._connection() as conn:
+            row = conn.execute(
+                """
+                SELECT
+                    COUNT(*) AS total,
+                    SUM(CASE WHEN deliver_status = 'success' THEN 1 ELSE 0 END) AS success,
+                    SUM(CASE WHEN deliver_status = 'danger' THEN 1 ELSE 0 END) AS danger,
+                    SUM(CASE WHEN deliver_status = 'warning' THEN 1 ELSE 0 END) AS warning,
+                    MIN(event_time) AS first_event_at,
+                    MAX(event_time) AS last_event_at
+                FROM delivery_events
+                WHERE substr(event_time, 1, 10) = ?
+                """,
+                (date_key,),
+            ).fetchone()
+
+            config_row = conn.execute(
+                "SELECT delivery_limit FROM app_config "
+                "ORDER BY updated_at DESC LIMIT 1"
+            ).fetchone()
+
+        first = row["first_event_at"] if row else None
+        last = row["last_event_at"] if row else None
+        elapsed_seconds = 0
+        if first and last and first != last:
+            try:
+                first_dt = datetime.fromisoformat(first)
+                last_dt = datetime.fromisoformat(last)
+                elapsed_seconds = max(0, int((last_dt - first_dt).total_seconds()))
+            except ValueError:
+                elapsed_seconds = 0
+
+        return {
+            "date": date_key,
+            "total": int(row["total"] or 0) if row else 0,
+            "success": int(row["success"] or 0) if row else 0,
+            "danger": int(row["danger"] or 0) if row else 0,
+            "warning": int(row["warning"] or 0) if row else 0,
+            "elapsed_seconds": elapsed_seconds,
+            "first_event_at": first,
+            "last_event_at": last,
+            "delivery_limit": int(config_row["delivery_limit"])
+            if config_row
+            else None,
+        }
+
+    def save_config(
+        self,
+        payload: dict[str, Any],
+        config_type: str = "formData",
+    ) -> dict[str, Any]:
+        delivery_limit_value = payload.get("deliveryLimit")
+        if isinstance(delivery_limit_value, dict):
+            delivery_limit = int(
+                delivery_limit_value.get("value", 120) or 120
+            )
+        else:
+            delivery_limit = 120
+
+        payload_json = serialize_json(payload)
+        now = _now()
+        with self._lock, self._connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO app_config (
+                    config_type, payload_json, delivery_limit,
+                    created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(config_type) DO UPDATE SET
+                    payload_json = excluded.payload_json,
+                    delivery_limit = excluded.delivery_limit,
+                    updated_at = excluded.updated_at
+                """,
+                (config_type, payload_json, delivery_limit, now, now),
+            )
+
+        return {
+            "config_type": config_type,
+            "delivery_limit": delivery_limit,
+            "updated_at": now,
+        }
+
+    def get_latest_config(self) -> dict[str, Any] | None:
+        with self._lock, self._connection() as conn:
+            row = conn.execute(
+                """
+                SELECT config_type, payload_json, delivery_limit, updated_at
+                FROM app_config
+                ORDER BY updated_at DESC
+                LIMIT 1
+                """
+            ).fetchone()
+
+        if row is None:
+            return None
+
+        try:
+            payload = json.loads(row["payload_json"])
+        except json.JSONDecodeError:
+            payload = {}
+
+        return {
+            "config_type": row["config_type"],
+            "delivery_limit": int(row["delivery_limit"] or 120),
+            "updated_at": row["updated_at"],
+            "redacted_payload": _redact_sensitive(payload),
+        }
+
+    def create_crawl_run(self) -> int:
+        with self._lock, self._connection() as conn:
+            cursor = conn.execute(
+                "INSERT INTO crawl_runs (state, started_at) VALUES (?, ?)",
+                ("starting", _now()),
+            )
+            return int(cursor.lastrowid)
+
+    def update_crawl_run(self, run_id: int, **fields: Any) -> None:
+        if not fields:
+            return
+        columns = [key for key in fields if key != "id"]
+        assignments = ", ".join(f"{column} = ?" for column in columns)
+        args = [fields[column] for column in columns]
+        with self._lock, self._connection() as conn:
+            conn.execute(
+                f"UPDATE crawl_runs SET {assignments} WHERE id = ?",
+                [*args, run_id],
+            )
+
+    def add_crawl_event(self, run_id: int, level: str, message: str) -> None:
+        with self._lock, self._connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO crawl_events (run_id, event_time, level, message)
+                VALUES (?, ?, ?, ?)
+                """,
+                (run_id, _now(), level, message),
+            )
+
+    def get_latest_crawl_status(self) -> dict[str, Any]:
+        with self._lock, self._connection() as conn:
+            run = conn.execute(
+                "SELECT * FROM crawl_runs ORDER BY id DESC LIMIT 1"
+            ).fetchone()
+            if run is None:
+                return {
+                    "state": "idle",
+                    "run_id": None,
+                    "current_keyword": "",
+                    "current_page": 0,
+                    "scraped_count": 0,
+                    "error_count": 0,
+                    "last_message": "",
+                    "started_at": None,
+                    "finished_at": None,
+                    "log_tail": [],
+                }
+
+            logs = conn.execute(
+                """
+                SELECT level, message FROM crawl_events
+                WHERE run_id = ?
+                ORDER BY id DESC
+                LIMIT 50
+                """,
+                (run["id"],),
+            ).fetchall()
+
+        return {
+            "state": run["state"],
+            "run_id": int(run["id"]),
+            "current_keyword": run["current_keyword"] or "",
+            "current_page": int(run["current_page"] or 0),
+            "scraped_count": int(run["scraped_count"] or 0),
+            "error_count": int(run["error_count"] or 0),
+            "last_message": run["last_message"] or "",
+            "started_at": run["started_at"],
+            "finished_at": run["finished_at"],
+            "log_tail": [
+                {"level": item["level"], "message": item["message"]}
+                for item in reversed(logs)
+            ],
+        }
+
+    def get_all_job_ids(self) -> set[str]:
+        with self._lock, self._connection() as conn:
+            rows = conn.execute("SELECT job_id FROM jobs").fetchall()
+        return {row["job_id"] for row in rows}
+
+
+def serialize_json(data: Any) -> str:
+    return json.dumps(data, ensure_ascii=False, default=str)
+
+
+def _redact_sensitive(value: Any) -> Any:
+    if isinstance(value, dict):
+        redacted = {}
+        for key, item in value.items():
+            lower_key = str(key).lower()
+            if any(
+                token in lower_key
+                for token in ("key", "token", "secret", "password")
+            ):
+                redacted[key] = "***"
+            else:
+                redacted[key] = _redact_sensitive(item)
+        return redacted
+    if isinstance(value, list):
+        return [_redact_sensitive(item) for item in value]
+    return value
