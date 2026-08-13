@@ -1,98 +1,123 @@
-> [!CAUTION]
-> 本项目仅供学习交流，禁止用于商业用途
->
-> 使用该脚本有一定风险(如黑号,封号,权重降低等)，本项目不承担任何责任
+# BOSS Helper Personal Workspace
 
-| Chrome                                                                                                                                                                                             | Crx搜搜                                                                                                                                           | Edge                                                                                                                                                                                                                                                                                                                           | FireFox                                                                                                                                   | Github                                                                                                                                |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/ogkmgjbagackkdlcibcailacnncgonbn?label=Chrome插件商店)](https://chrome.google.com/webstore/detail/ogkmgjbagackkdlcibcailacnncgonbn) | [![Crx 搜搜](https://img.shields.io/badge/Crx搜索-v%3F.%3F.%3F-EF7C3D)](https://www.crxsoso.com/webstore/detail/ogkmgjbagackkdlcibcailacnncgonbn) | [![Edge Web Store](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fjcllnbjfeamhihjpfjlclhdnjmggbgal&query=version&prefix=v&label=Edge插件商店&color=EF7C3D)](https://microsoftedge.microsoft.com/addons/detail/jcllnbjfeamhihjpfjlclhdnjmggbgal) | [![Firefox](https://img.shields.io/amo/v/boss-helper?label=Mozilla插件商店)](https://addons.mozilla.org/zh-TW/firefox/addon/boss-helper/) | [![GitHub Release](https://img.shields.io/github/v/release/Ocyss/boos-helper)](https://github.com/Ocyss/boos-helper/releases/latest/) |
+> 本项目仅供个人学习与技术交流使用，请勿用于商业用途或进行高频恶意抓取。使用自动化脚本可能带来账号风控风险，请自行承担。
 
-> **国内**: 如果无法访问 `Chrome插件商店` , 请使用 `Crx搜搜` 或 `Edge插件商店` 安装
+本仓库是个人工作区，整合了以下内容：
 
-## 项目介绍
+- Chrome 浏览器插件
+- Python 本地数据后台
+- macOS 客户端
+- Selenium 职位爬虫
+- ECharts 数据可视化看板
 
-Boss直聘助手, 皆在减少投递简历的麻烦, 和提高投递简历的效率, 技术栈使用WXT + Vue3 + element-plus, 开源在 Github 欢迎前来Pr
+## 项目来源说明
 
-> 本项目处于积极维护状态, 一直很忙所以拖了比较久才开源，抱歉了~
+### Chrome 插件
 
-## 相关链接
+Chrome 插件部分来源于开源项目：
 
-Github开源地址: <https://github.com/ocyss/boos-helper>
+<https://github.com/Ocyss/boss-helper>
 
-飞书反馈问卷(匿名): <https://gai06vrtbc0.feishu.cn/share/base/form/shrcnmEq2fxH9hM44hqEnoeaj8g>
+用于 BOSS 直聘页面的简历批量投递、筛选和自动打招呼。插件源码位于仓库根目录的 `src/`，技术栈为 WXT + Vue 3 + Element Plus。
 
-> 每个提交都会给我发通知，我看见就会评论的形式回复 一般 1-2天
+### 其他部分
 
-飞书问卷结果: <https://gai06vrtbc0.feishu.cn/share/base/view/shrcnrg8D0cbLQc89d7Jj7AZgMc>
+以下内容是个人独立整理和维护的：
 
-greasyfork地址(0.2旧版本): <https://greasyfork.org/zh-CN/scripts/491340>
+- Python 本地数据后台：`macos/backend/`
+- macOS 客户端：`macos/BossHelperMac/`
+- Selenium 爬虫：`boss_spider_个人版本/spider/`
+- 数据可视化看板：`boss_spider_个人版本/dashboard/`
 
-## 项目预览
+## 目录结构
 
-[![卡片状态](docs/img/shot_2024-04-14_23-08-03.png)](docs/img/shot_2024-04-14_23-08-03.png)
-[![账户配置](docs/img/shot_2024-04-14_23-09-05.png)](docs/img/shot_2024-04-14_23-09-05.png)
-[![统计界面](docs/img/shot_2024-04-02_22-25-25.png)](docs/img/shot_2024-04-02_22-25-25.png)
-[![配置界面](docs/img/shot_2024-04-02_22-26-54.png)](docs/img/shot_2024-04-02_22-26-54.png)
-[![日志界面](docs/img/shot_2024-04-02_22-32-25.png)](docs/img/shot_2024-04-02_22-32-25.png)
+```text
+.
+├── src/                      # Chrome 插件源码
+├── macos/
+│   ├── BossHelperMac/        # SwiftUI macOS 客户端
+│   ├── backend/              # Python 数据后台
+│   └── scripts/              # 打包脚本
+├── boss_spider_个人版本/
+│   ├── spider/               # Selenium 爬虫
+│   ├── dashboard/            # ECharts 数据看板
+│   └── requirements.txt
+└── README.md
+```
 
-## TODO
+## 快速开始
 
-- [x] 优化UI去除广告
-- [x] 批量投递简历
-- 高级筛选
-  - [x] 薪资,公司名,工作名,人数,内容简单筛选
-  - 公司地址相关
-    > 使用高德api，需要自行申请，或者使用关键字筛选, 暂时只有驾车和步行
-    - [x] 驾车/步行距离
-    - [x] 驾车/步行时间
-  - [ ] 公司风险评控
-  - [x] AI筛选
-- 自动打招呼
-  - [x] 模板语言
-  - [x] 支持chatGPT
-- AI赋能
-  - [ ] 自动回复聊天
-  - [x] 多模型管理
-- 额外功能(有时间会写)
-  - [ ] 暗黑模式 （停更中~）
-  - [x] 自适应UI适配手机
-  - [ ] 黑名单
-  - [x] 多账号管理
-  - [ ] 聊天屏蔽已读消息
-  - [ ] boss消息弹窗
+### 1. Chrome 插件
 
-## 参与贡献
+```bash
+pnpm install
+pnpm run build
+```
 
-1. Fork 本仓库并克隆到本地。
-2. 在新分支上进行您的更改：`git checkout -b 您的分支名称`
-3. 提交更改：`git commit -am '描述您的更改'`
-4. 推送更改到您的 Fork：`git push origin 您的分支名称`
-5. 提交 Pull 请求。
+构建产物位于：
 
-## 鸣谢
+```text
+.output/chrome-mv3
+```
 
-- <https://github.com/yangfeng20/boss_batch_push>
-- <https://github.com/lisonge/vite-plugin-monkey>
-- <https://github.com/chatanywhere/GPT_API_free>
+在 Chrome 的 `chrome://extensions/` 中开启开发者模式，加载该目录即可。
 
-- <https://uiverse.io/>
-- <https://www.runoob.com/manual/mqtt/protocol/MQTT-3.1.1-CN.pdf>
+### 2. Python 本地数据后台
 
-## 类似项目
+```bash
+cd macos/backend
+python3 run.py
+```
 
-- <https://github.com/Frrrrrrrrank/auto_job__find__chatgpt__rpa>
-- <https://github.com/noBaldAaa/find-job>
+默认监听：
 
-## 最后
+```text
+http://127.0.0.1:5005
+```
 
-嗯...
+### 3. macOS 客户端
 
-## Star 趋势
+开发运行：
 
-<a href="https://star-history.com/#ocyss/boos-helper&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ocyss/boos-helper&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ocyss/boos-helper&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ocyss/boos-helper&type=Date" />
- </picture>
-</a>
+```bash
+cd macos/BossHelperMac
+swift run BossHelperMac
+```
+
+打包完整 App：
+
+```bash
+./macos/scripts/build_app.sh
+```
+
+产物：
+
+```text
+macos/build/BossHelperMac.app
+```
+
+### 4. Selenium 爬虫
+
+```bash
+cd boss_spider_个人版本
+python3 spider/bossspider.py
+```
+
+爬虫会将结构化职位数据写入本地 MySQL。
+
+### 5. 数据可视化看板
+
+```bash
+cd boss_spider_个人版本/dashboard
+python3 -m http.server 8000
+```
+
+访问：
+
+```text
+http://localhost:8000
+```
+
+## 免责声明
+
+本项目仅用于学习 BOSS 直聘页面交互、浏览器插件开发、Python 后端、macOS 客户端和数据可视化。请遵守目标网站的使用条款，控制访问频率，不要用于任何商业或违规用途。
