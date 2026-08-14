@@ -15,52 +15,52 @@ struct DataView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("本地数据")
-                .font(.largeTitle.bold())
+        Form {
+            Section("CSV 导出目录") {
+                LabeledContent("路径") {
+                    Text(csvDirectory.path)
+                        .font(.body.monospaced())
+                        .textSelection(.enabled)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("CSV 导出目录")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Text(csvDirectory.path)
-                    .font(.body.monospaced())
-                    .textSelection(.enabled)
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("数据库目录")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Text(databaseDirectory.path)
-                    .font(.body.monospaced())
-                    .textSelection(.enabled)
-            }
-
-            HStack {
-                Button("打开 CSV 文件夹") {
+                Button("在访达中打开") {
                     NSWorkspace.shared.open(csvDirectory)
                 }
+            }
 
-                Button("打开数据库文件夹") {
-                    NSWorkspace.shared.open(databaseDirectory)
+            Section("数据库目录") {
+                LabeledContent("路径") {
+                    Text(databaseDirectory.path)
+                        .font(.body.monospaced())
+                        .textSelection(.enabled)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
                 }
 
+                Button("在访达中打开") {
+                    NSWorkspace.shared.open(databaseDirectory)
+                }
+            }
+
+            Section("操作") {
                 Button("导入历史数据") {
                     chooseFilesToImport()
                 }
             }
 
             if let errorMessage = appState.errorMessage {
-                Text(errorMessage)
-                    .font(.callout)
-                    .foregroundStyle(.red)
+                Section {
+                    Text(errorMessage)
+                        .font(.callout)
+                        .foregroundStyle(.red)
+                }
             }
-
-            Spacer()
         }
-        .padding(24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .contentMargins(.top, 8, for: .scrollContent)
     }
 
     private func chooseFilesToImport() {

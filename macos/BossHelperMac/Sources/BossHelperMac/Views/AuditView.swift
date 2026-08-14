@@ -37,33 +37,8 @@ struct AuditView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("审计")
-                        .font(.largeTitle.bold())
-                    Text("查看后台接收与运行日志")
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-            }
-
-            BackendInfoSection()
-
-            HStack {
-                infoItem("数据目录", appState.processManager.dataDirectory.path)
-            }
-
-            if let errorMessage = appState.errorMessage {
-                Text(errorMessage)
-                    .font(.callout)
-                    .foregroundStyle(.red)
-            }
-
-            HStack {
-                Text("日志分类")
-                    .font(.headline)
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
                 Picker("日志分类", selection: $filter) {
                     ForEach(LogFilter.allCases) { item in
                         Text(item.title).tag(item)
@@ -71,28 +46,30 @@ struct AuditView: View {
                 }
                 .labelsHidden()
                 .pickerStyle(.segmented)
+                .frame(width: 360)
+
+                Spacer()
             }
 
-            SelectableTextView(text: filteredText)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color(nsColor: .textBackgroundColor))
-                )
-        }
-        .padding(24)
-    }
+            if let errorMessage = appState.errorMessage {
+                Text(errorMessage)
+                    .font(.callout)
+                    .foregroundStyle(.red)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
 
-    private func infoItem(_ title: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Text(value)
-                .font(.body.monospaced())
-                .lineLimit(1)
-                .truncationMode(.middle)
+            if filteredEntries.isEmpty {
+                Spacer()
+                Text("暂无日志")
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                Spacer()
+            } else {
+                SelectableTextView(text: filteredText)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
         }
+        .padding(EdgeInsets(top: 12, leading: 20, bottom: 20, trailing: 20))
     }
 
     private func formattedTime(_ date: Date) -> String {

@@ -201,6 +201,11 @@ final class BackendProcessManager: ObservableObject {
                 let entry = Self.makeEntry(rawText: rawText, prefix: prefix)
                 guard entry.category != .polling else { return }
                 print("backend-\(entry.text)")
+                if entry.category == .error {
+                    DispatchQueue.main.async { [weak self] in
+                        self?.lastError = rawText
+                    }
+                }
                 self?.appendEntry(entry)
             }
         }

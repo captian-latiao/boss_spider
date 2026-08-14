@@ -14,6 +14,13 @@ enum BackendClientError: LocalizedError {
 struct BackendClient {
     let baseURL: URL
 
+    private static let session: URLSession = {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.timeoutIntervalForRequest = 5
+        configuration.timeoutIntervalForResource = 10
+        return URLSession(configuration: configuration)
+    }()
+
     init(baseURL: URL = URL(string: "http://127.0.0.1:5005")!) {
         self.baseURL = baseURL
     }
@@ -64,7 +71,7 @@ struct BackendClient {
     }
 
     private func send<T: Decodable>(_ request: URLRequest) async throws -> T {
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await Self.session.data(for: request)
         guard let httpResponse = response as? HTTPURLResponse,
               (200..<300).contains(httpResponse.statusCode) else {
             throw BackendClientError.invalidResponse

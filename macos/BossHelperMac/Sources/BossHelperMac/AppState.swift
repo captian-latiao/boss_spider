@@ -25,8 +25,13 @@ final class AppState: ObservableObject {
     private var pollTask: Task<Void, Never>?
 
     init() {
-        Task {
-            await retryBackend()
+        let autoStart = UserDefaults.standard.object(forKey: "autoStartBackend") as? Bool ?? true
+        if autoStart {
+            Task {
+                await retryBackend()
+            }
+        } else {
+            backendState = .stopped
         }
     }
 
@@ -111,6 +116,7 @@ final class AppState: ObservableObject {
         pollTask = nil
         backendState = .starting
         hasLoggedReady = false
+        errorMessage = nil
         if !processManager.isRunning {
             await processManager.startIfNeeded()
         }
@@ -129,7 +135,9 @@ final class AppState: ObservableObject {
 
         let reason = processManager.lastError
             ?? "请求超时，无法连接本地后端服务"
-        backendState = .failed(UserFacingBackendError.message(forText: reason))
+        let message = UserFacingBackendError.message(forText: reason)
+        backendState = .failed(message)
+        errorMessage = message
     }
 
     private func probeBackendHealth() async -> Bool {
@@ -181,12 +189,6 @@ final class AppState: ObservableObject {
             metrics = try await backendClient.metricsToday()
         } catch {
             metrics = nil
-        }
-
-        do {
-            crawlStatus = try await backendClient.crawlStatus()
-        } catch {
-            crawlStatus = nil
         }
     }
 
