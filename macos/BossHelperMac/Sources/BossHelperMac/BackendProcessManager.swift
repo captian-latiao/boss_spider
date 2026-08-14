@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 
 final class BackendProcessManager: ObservableObject {
@@ -18,8 +19,14 @@ final class BackendProcessManager: ObservableObject {
             .appendingPathComponent("Library/Application Support/BossHelper")
     }
 
+    private var backendPIDFileURL: URL {
+        dataDirectory.appendingPathComponent("backend.pid")
+    }
+
     func startIfNeeded() async {
         guard process == nil else { return }
+
+        reclaimStaleBackendIfNeeded()
 
         if await isBackendHealthy() {
             isRunning = true
@@ -63,6 +70,7 @@ final class BackendProcessManager: ObservableObject {
             isRunning = true
             ownsProcess = true
             lastError = nil
+            writeBackendPID(newProcess.processIdentifier)
             appendLog("后端进程已创建，PID \(newProcess.processIdentifier)，等待健康检查")
         } catch {
             lastError = error.localizedDescription
@@ -97,6 +105,45 @@ final class BackendProcessManager: ObservableObject {
         isRunning = false
         ownsProcess = false
         appendLog("后端服务已停止")
+    }
+
+    private func reclaimStaleBackendIfNeeded() {
+        guard let pid = staleBackendPID() else { return }
+        appendLog("清理上次遗留的后端进程 PID \(pid)")
+
+        kill(pid, SIGTERM)
+        Thread.sleep(forTimeInterval: 0.5)
+        if isProcessAlive(pid) {
+            kill(pid, SIGKILL)
+        }
+
+        try? FileManager.default.removeItem(at: backendPIDFileURL)
+    }
+
+    private func staleBackendPID() -> pid_t? {
+        guard let data = try? Data(contentsOf: backendPIDFileURL),
+              let text = String(data: data, encoding: .utf8),
+              let pid = Int32(text.trimmingCharacters(in: .whitespacesAndNewlines)),
+              pid > 0 else {
+            return nil
+        }
+        return isProcessAlive(pid) ? pid : nil
+    }
+
+    private func isProcessAlive(_ pid: pid_t) -> Bool {
+        kill(pid, 0) == 0 || errno == EPERM
+    }
+
+    private func writeBackendPID(_ pid: pid_t) {
+        try? FileManager.default.createDirectory(
+            at: dataDirectory,
+            withIntermediateDirectories: true
+        )
+        try? "\(pid)".write(
+            to: backendPIDFileURL,
+            atomically: true,
+            encoding: .utf8
+        )
     }
 
     func appendLog(

@@ -1,12 +1,11 @@
+import AppKit
 import SwiftUI
 
 enum MainTab: String, CaseIterable, Identifiable {
     case dashboard
     case audit
     case data
-    case general
-    case appearance
-    case about
+    case settings
 
     var id: Self { self }
 
@@ -15,9 +14,7 @@ enum MainTab: String, CaseIterable, Identifiable {
         case .dashboard: return "Herooo"
         case .audit: return "审计"
         case .data: return "数据"
-        case .general: return "通用"
-        case .appearance: return "外观"
-        case .about: return "关于"
+        case .settings: return "设置"
         }
     }
 
@@ -26,31 +23,45 @@ enum MainTab: String, CaseIterable, Identifiable {
         case .dashboard: return "gauge"
         case .audit: return "list.bullet.rectangle"
         case .data: return "folder"
-        case .general: return "gearshape"
-        case .appearance: return "paintbrush"
-        case .about: return "info.circle"
+        case .settings: return "gearshape"
         }
     }
 }
 
 struct ContentView: View {
     @AppStorage("appTheme") private var appTheme = "system"
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         MainSplitView()
-            .preferredColorScheme(resolvedColorScheme)
+            .tint(accentColor)
+            .onAppear {
+                applyAppearance(appTheme)
+            }
+            .onChange(of: appTheme) { _, newValue in
+                applyAppearance(newValue)
+            }
     }
 
-    private var resolvedColorScheme: ColorScheme? {
-        switch appTheme {
-        case "light": return .light
-        case "dark": return .dark
-        default: return nil
+    private var accentColor: Color {
+        AppTheme.accentColor(appTheme: appTheme, colorScheme: colorScheme)
+    }
+
+    private func applyAppearance(_ theme: String) {
+        switch theme {
+        case "light":
+            NSApp.appearance = NSAppearance(named: .aqua)
+        case "dark":
+            NSApp.appearance = NSAppearance(named: .darkAqua)
+        default:
+            NSApp.appearance = nil
         }
     }
 }
 
 struct MainSplitView: View {
+    @AppStorage("appTheme") private var appTheme = "system"
+    @Environment(\.colorScheme) private var colorScheme
     @State private var selectedTab: MainTab? = .dashboard
     @State private var history: [MainTab] = [.dashboard]
     @State private var historyIndex = 0
@@ -63,6 +74,7 @@ struct MainSplitView: View {
     var body: some View {
         NavigationSplitView(columnVisibility: .constant(.all)) {
             MainSidebarView(selectedTab: $selectedTab)
+                .tint(AppTheme.accentColor(appTheme: appTheme, colorScheme: colorScheme))
                 .navigationSplitViewColumnWidth(min: 200, ideal: 200, max: 200)
                 .toolbar(removing: .sidebarToggle)
         } detail: {
@@ -131,28 +143,35 @@ struct MainSplitView: View {
 struct MainSidebarView: View {
     @Binding var selectedTab: MainTab?
 
-    private let contentTabs: [MainTab] = [.dashboard, .audit, .data]
-    private let settingsTabs: [MainTab] = [.general, .appearance, .about]
+    private let topTabs: [MainTab] = [.dashboard, .audit, .data]
 
     var body: some View {
         List(selection: $selectedTab) {
-            Section("内容") {
-                ForEach(contentTabs) { tab in
-                    Label(tab.title, systemImage: tab.systemImage)
-                        .tag(tab)
-                }
-            }
-
-            Section("设置") {
-                ForEach(settingsTabs) { tab in
-                    Label(tab.title, systemImage: tab.systemImage)
-                        .tag(tab)
-                }
+            ForEach(topTabs) { tab in
+                MainSidebarTabLabel(tab: tab)
+                    .tag(tab)
             }
         }
         .listStyle(.sidebar)
         .scrollEdgeEffectStyleSoftIfAvailable()
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            List(selection: $selectedTab) {
+                MainSidebarTabLabel(tab: .settings)
+                    .tag(MainTab.settings)
+            }
+            .listStyle(.sidebar)
+            .scrollDisabled(true)
+            .frame(height: 40)
+        }
         .navigationTitle("BossHelper")
+    }
+}
+
+private struct MainSidebarTabLabel: View {
+    let tab: MainTab
+
+    var body: some View {
+        Label(tab.title, systemImage: tab.systemImage)
     }
 }
 
@@ -168,12 +187,8 @@ struct MainDetailView: View {
                 AuditView()
             case .data:
                 DataView()
-            case .general:
-                GeneralSettingsPane()
-            case .appearance:
-                AppearanceSettingsPane()
-            case .about:
-                AboutSettingsPane()
+            case .settings:
+                SettingsView()
             }
         }
         .navigationTitle(tab.title)

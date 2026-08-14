@@ -34,8 +34,9 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
 
         window.title = "BossHelper"
         window.titleVisibility = .visible
-        window.titlebarAppearsTransparent = false
-        window.toolbarStyle = .automatic
+        window.titlebarAppearsTransparent = true
+        window.titlebarSeparatorStyle = .automatic
+        window.toolbarStyle = .unified
         window.isMovableByWindowBackground = true
         window.setFrameAutosaveName("BossHelperMainWindow")
         window.minSize = NSSize(width: 720, height: 540)
@@ -45,6 +46,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         let hostingController = NSHostingController(
             rootView: ContentView().environmentObject(appState)
         )
+        hostingController.sceneBridgingOptions = [.toolbars, .title]
         window.contentViewController = hostingController
     }
 
