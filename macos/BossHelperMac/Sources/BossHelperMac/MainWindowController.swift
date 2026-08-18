@@ -8,7 +8,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
     init(appState: AppState) {
         self.appState = appState
         let window = NSWindow(
-            contentRect: NSRect(origin: .zero, size: NSSize(width: 900, height: 640)),
+            contentRect: NSRect(origin: .zero, size: NSSize(width: 1040, height: 700)),
             styleMask: [
                 .titled,
                 .closable,
@@ -32,14 +32,14 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
     private func configureWindow() {
         guard let window else { return }
 
-        window.title = "BossHelper"
+        window.title = "Herooo"
         window.titleVisibility = .visible
         window.titlebarAppearsTransparent = true
         window.titlebarSeparatorStyle = .automatic
         window.toolbarStyle = .unified
         window.isMovableByWindowBackground = true
-        window.setFrameAutosaveName("BossHelperMainWindow")
-        window.minSize = NSSize(width: 720, height: 540)
+        window.setFrameAutosaveName("HeroooMainWindow")
+        window.minSize = NSSize(width: 860, height: 580)
         window.center()
         window.delegate = self
 

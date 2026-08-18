@@ -3,7 +3,7 @@ import os
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from . import __version__
 from .crawler import CrawlerManager
@@ -50,7 +50,10 @@ class BossHelperHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self) -> None:
-        path = urlparse(self.path).path
+        parsed = urlparse(self.path)
+        path = parsed.path
+        query = parse_qs(parsed.query)
+
         if path == "/health":
             self._send_json(
                 200,
@@ -62,6 +65,14 @@ class BossHelperHandler(BaseHTTPRequestHandler):
             )
         elif path == "/api/metrics/today":
             self._send_json(200, self.store.get_today_metrics())
+        elif path == "/api/events/recent":
+            limit_val = int(query.get("limit", ["50"])[0]) if query.get("limit") else 50
+            self._send_json(200, self.store.get_recent_events(limit_val))
+        elif path == "/api/jobs":
+            limit_val = int(query.get("limit", ["100"])[0]) if query.get("limit") else 100
+            status_val = query.get("status", [None])[0]
+            keyword_val = query.get("keyword", [None])[0]
+            self._send_json(200, self.store.get_jobs(limit_val, status_val, keyword_val))
         elif path == "/api/crawl/status":
             self._send_json(200, self.crawler.full_status())
         elif path == "/api/config/latest":
@@ -79,7 +90,16 @@ class BossHelperHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         path = urlparse(self.path).path
         try:
-            if path == "/api/save_job":
+            if path == "/api/config/delivery_limit":
+                payload = self._read_json()
+                limit = int(payload.get("limit", 120))
+                # Update latest config with delivery limit
+                result = self.store.save_config(
+                    {"deliveryLimit": {"value": limit}},
+                    config_type="formData",
+                )
+                self._send_json(200, {"code": 200, **result})
+            elif path == "/api/save_job":
                 payload = self._read_json()
                 job = record_delivery(self.store, payload)
                 print(

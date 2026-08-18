@@ -13,6 +13,9 @@ final class AppState: ObservableObject {
     @Published var health: HealthResponse?
     @Published var metrics: MetricsResponse?
     @Published var crawlStatus: CrawlStatusResponse?
+    @Published var recentEvents: [DeliveryEventItem] = []
+    @Published var jobs: [JobItem] = []
+    @Published var isJobsLoading: Bool = false
     @Published var errorMessage: String?
     @Published var backendState: BackendLaunchState = .starting
     @Published private(set) var hasReachedReady = false
@@ -69,9 +72,9 @@ final class AppState: ObservableObject {
         case .stopping:
             return "停止中"
         case .ready:
-            return "运行中"
+            return "服务运行中"
         case .stopped:
-            return "已停止"
+            return "服务已停止"
         case .failed:
             return "启动失败"
         }
@@ -128,6 +131,7 @@ final class AppState: ObservableObject {
                 hasReachedReady = true
                 logBackendReady()
                 startPolling()
+                await refresh()
                 return
             }
             try? await Task.sleep(nanoseconds: 500_000_000)
@@ -156,7 +160,7 @@ final class AppState: ObservableObject {
         let pid = health?.pid ?? 0
         let version = health?.version ?? "--"
         processManager.appendLog(
-            "后端服务已就绪，PID \(pid)，版本 \(version)，地址 \(listenAddress)"
+            "Herooo 后端服务已就绪，PID \(pid)，版本 \(version)，地址 \(listenAddress)"
         )
     }
 
@@ -190,6 +194,32 @@ final class AppState: ObservableObject {
         } catch {
             metrics = nil
         }
+
+        do {
+            recentEvents = try await backendClient.recentEvents(limit: 30)
+        } catch {
+            // Keep existing events if error
+        }
+    }
+
+    func fetchJobs(status: String? = nil, keyword: String? = nil) async {
+        guard backendRunning else { return }
+        isJobsLoading = true
+        do {
+            jobs = try await backendClient.jobs(limit: 100, status: status, keyword: keyword)
+        } catch {
+            // keep existing
+        }
+        isJobsLoading = false
+    }
+
+    func setDeliveryLimit(_ limit: Int) async {
+        do {
+            try await backendClient.saveDeliveryLimit(limit)
+            await refresh()
+        } catch {
+            errorMessage = "保存投递限额失败：\(error.localizedDescription)"
+        }
     }
 
     func startCrawl() async {
@@ -215,6 +245,7 @@ final class AppState: ObservableObject {
             _ = try await backendClient.importPaths(paths)
             errorMessage = nil
             await refresh()
+            await fetchJobs()
         } catch {
             errorMessage = "导入失败：\(error.localizedDescription)"
         }

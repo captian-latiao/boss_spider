@@ -399,6 +399,67 @@ class SQLiteStore:
             rows = conn.execute("SELECT job_id FROM jobs").fetchall()
         return {row["job_id"] for row in rows}
 
+    def get_recent_events(self, limit: int = 50) -> list[dict[str, Any]]:
+        with self._lock, self._connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT
+                    e.id,
+                    e.job_id,
+                    e.deliver_status,
+                    e.filter_reason,
+                    e.filter_detail,
+                    e.event_time,
+                    COALESCE(j.job_name, '') AS job_name,
+                    COALESCE(j.job_company, '') AS job_company,
+                    COALESCE(j.job_area, '') AS job_area,
+                    COALESCE(j.salary_range, '') AS salary_range,
+                    COALESCE(j.boss_name, '') AS boss_name,
+                    COALESCE(j.boss_title, '') AS boss_title
+                FROM delivery_events e
+                LEFT JOIN jobs j ON e.job_id = j.job_id
+                ORDER BY e.id DESC
+                LIMIT ?
+                """,
+                (max(1, min(limit, 200)),),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def get_jobs(
+        self,
+        limit: int = 100,
+        status: str | None = None,
+        keyword: str | None = None,
+    ) -> list[dict[str, Any]]:
+        query = "SELECT * FROM jobs WHERE 1=1"
+        params: list[Any] = []
+        if status and status != "all":
+            if status in {"filter", "warning", "filtered"}:
+                query += " AND deliver_status IN ('warning', 'filter', 'filtered')"
+            elif status in {"danger", "error", "failed"}:
+                query += " AND deliver_status IN ('danger', 'error', 'failed')"
+            elif status in {"success", "delivered"}:
+                query += " AND deliver_status IN ('success', 'delivered')"
+            else:
+                query += " AND deliver_status = ?"
+                params.append(status)
+        if keyword:
+            query += (
+                " AND (job_name LIKE ? OR job_company LIKE ?"
+                " OR post_description LIKE ? OR job_area LIKE ?"
+                " OR filter_reason LIKE ? OR filter_detail LIKE ?)"
+            )
+            kw = f"%{keyword}%"
+            params.extend([kw, kw, kw, kw, kw, kw])
+        query += " ORDER BY ingested_at DESC LIMIT ?"
+        params.append(max(1, min(limit, 500)))
+
+        with self._lock, self._connection() as conn:
+            rows = conn.execute(query, params).fetchall()
+        return [dict(row) for row in rows]
+
+
+
 
 def serialize_json(data: Any) -> str:
     return json.dumps(data, ensure_ascii=False, default=str)
