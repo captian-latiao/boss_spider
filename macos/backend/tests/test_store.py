@@ -1,8 +1,9 @@
 import tempfile
 import unittest
+from datetime import datetime, timedelta
 from pathlib import Path
 
-from boss_helper_service.store import SQLiteStore
+from boss_helper_service.store import SQLiteStore, compute_speed_stats
 
 
 class StoreTests(unittest.TestCase):
@@ -59,6 +60,114 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(metrics["danger"], 1)
         self.assertEqual(metrics["warning"], 1)
         self.assertIsNone(metrics["delivery_limit"])
+
+    def test_speed_stats_single_event_all_zero(self) -> None:
+        self.store.insert_delivery_event(
+            job_id="job-1",
+            deliver_status="success",
+            event_time="2026-08-19T09:00:00",
+        )
+        metrics = self.store.get_today_metrics(today="2026-08-19")
+        self.assertEqual(metrics["total"], 1)
+        self.assertEqual(metrics["active_seconds"], 0)
+        self.assertEqual(metrics["pause_count"], 0)
+        self.assertEqual(metrics["pause_seconds"], 0)
+        self.assertEqual(metrics["speed_per_hour"], 0)
+
+    def test_speed_stats_within_threshold(self) -> None:
+        self.store.insert_delivery_event(
+            job_id="job-1",
+            deliver_status="success",
+            event_time="2026-08-19T09:00:00",
+        )
+        self.store.insert_delivery_event(
+            job_id="job-2",
+            deliver_status="success",
+            event_time="2026-08-19T09:03:00",
+        )
+        metrics = self.store.get_today_metrics(today="2026-08-19")
+        self.assertEqual(metrics["total"], 2)
+        self.assertEqual(metrics["active_seconds"], 180)
+        self.assertEqual(metrics["pause_count"], 0)
+        self.assertEqual(metrics["pause_seconds"], 0)
+        self.assertAlmostEqual(metrics["speed_per_hour"], 40.0)
+
+    def test_speed_stats_pause_excluded(self) -> None:
+        self.store.insert_delivery_event(
+            job_id="job-1",
+            deliver_status="success",
+            event_time="2026-08-19T09:00:00",
+        )
+        self.store.insert_delivery_event(
+            job_id="job-2",
+            deliver_status="success",
+            event_time="2026-08-19T09:10:00",
+        )
+        metrics = self.store.get_today_metrics(today="2026-08-19")
+        self.assertEqual(metrics["total"], 2)
+        self.assertEqual(metrics["active_seconds"], 0)
+        self.assertEqual(metrics["pause_count"], 1)
+        self.assertEqual(metrics["pause_seconds"], 600)
+        self.assertEqual(metrics["speed_per_hour"], 0)
+
+    def test_speed_stats_mixed_gaps(self) -> None:
+        for time in [
+            "2026-08-19T09:00:00",
+            "2026-08-19T09:03:00",
+            "2026-08-19T09:20:00",
+            "2026-08-19T09:22:00",
+        ]:
+            self.store.insert_delivery_event(
+                job_id=f"job-{time}",
+                deliver_status="success",
+                event_time=time,
+            )
+        metrics = self.store.get_today_metrics(today="2026-08-19")
+        self.assertEqual(metrics["total"], 4)
+        self.assertEqual(metrics["active_seconds"], 300)
+        self.assertEqual(metrics["pause_count"], 1)
+        self.assertEqual(metrics["pause_seconds"], 1020)
+        self.assertAlmostEqual(metrics["speed_per_hour"], 48.0)
+
+    def test_compute_speed_stats_unparseable_ignored(self) -> None:
+        stats = compute_speed_stats(
+            ["not-a-date", "2026-08-19T09:00:00", "2026-08-19T09:02:00"]
+        )
+        self.assertEqual(stats["active_seconds"], 120)
+        self.assertEqual(stats["pause_count"], 0)
+
+    def test_daily_speed_series_fills_zero_days(self) -> None:
+        now = datetime.now()
+        day_a = (now - timedelta(days=2)).strftime("%Y-%m-%d")
+        day_b = now.strftime("%Y-%m-%d")
+        self.store.insert_delivery_event(
+            job_id="job-1",
+            deliver_status="success",
+            event_time=f"{day_a}T09:00:00",
+        )
+        self.store.insert_delivery_event(
+            job_id="job-2",
+            deliver_status="success",
+            event_time=f"{day_a}T09:02:00",
+        )
+        self.store.insert_delivery_event(
+            job_id="job-3",
+            deliver_status="success",
+            event_time=f"{day_b}T10:00:00",
+        )
+
+        series = self.store.get_daily_speed(days=7)
+        self.assertEqual(len(series), 7)
+        self.assertEqual([item["date"] for item in series], sorted(item["date"] for item in series))
+        self.assertEqual(series[-1]["date"], day_b)
+
+        day_a_item = next(item for item in series if item["date"] == day_a)
+        self.assertEqual(day_a_item["total"], 2)
+        self.assertEqual(day_a_item["active_seconds"], 120)
+
+        today_item = series[-1]
+        self.assertEqual(today_item["total"], 1)
+        self.assertEqual(today_item["active_seconds"], 0)
 
     def test_crawl_status_and_log_tail(self) -> None:
         run_id = self.store.create_crawl_run()

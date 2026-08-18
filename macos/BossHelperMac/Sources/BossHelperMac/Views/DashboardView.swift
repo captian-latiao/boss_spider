@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import Charts
 
 struct DashboardView: View {
     @EnvironmentObject private var appState: AppState
@@ -7,6 +8,7 @@ struct DashboardView: View {
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("accentColor") private var accentColorKey = "pink"
     @State private var pulse = false
+    @State private var hoveredPoint: DailySpeedPoint?
 
     private var themeAccentColor: Color {
         AppTheme.accentColor(accent: accentColorKey, colorScheme: colorScheme)
@@ -26,58 +28,113 @@ struct DashboardView: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
-            // 1. Top Hero Service Control Banner
-            heroControlBanner
+        GlassEffectContainer {
+            VStack(spacing: 16) {
+                // 1+2. Unified 4-column grid: service(1) + efficiency(3),
+                // then the four metric cards (1 each)
+                mainGrid
 
-            // 2. Metrics Grid (4 Equal Minimal Cards)
-            metricsGrid
-
-            // 3. Live Activity Feed (Fixed Height with Independent Scroll, No Scrollbar, Insertion Animation)
-            liveActivitySection
+                // 3. Live Activity Feed
+                liveActivitySection
+            }
         }
         .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Color(nsColor: .windowBackgroundColor))
     }
 
-    // MARK: - Hero Control Banner (8pt Grid Standardized)
-    private var heroControlBanner: some View {
-        HStack(alignment: .center, spacing: 16) {
+    // MARK: - Main Grid (8pt Grid Standardized)
+    private var mainGrid: some View {
+        Grid(horizontalSpacing: 16, verticalSpacing: 16) {
+            GridRow {
+                serviceStatusCard
+                    .gridCellColumns(1)
+
+                deliveryEfficiencyCard
+                    .gridCellColumns(3)
+            }
+
+            GridRow {
+                // Card 1: 成功
+                DashboardMetricCard(
+                    title: "成功",
+                    value: "\(successCount)",
+                    icon: "paperplane.fill",
+                    accentColor: themeAccentColor,
+                    progress: deliveryProgress,
+                    showProgress: true,
+                    progressCaption: "\(successCount) / \(deliveryLimit)"
+                )
+
+                // Card 2: 拦截
+                DashboardMetricCard(
+                    title: "拦截",
+                    value: "\(appState.metrics?.warning ?? 0)",
+                    icon: "shield.lefthalf.filled",
+                    accentColor: .orange,
+                    progress: nil,
+                    showProgress: false
+                )
+
+                // Card 3: 异常
+                DashboardMetricCard(
+                    title: "异常",
+                    value: "\(appState.metrics?.danger ?? 0)",
+                    icon: "exclamationmark.triangle.fill",
+                    accentColor: (appState.metrics?.danger ?? 0) == 0 ? .secondary : .red,
+                    progress: nil,
+                    showProgress: false
+                )
+
+                // Card 4: 耗时
+                DashboardMetricCard(
+                    title: "耗时",
+                    value: formatElapsed(appState.metrics?.elapsedSeconds ?? 0),
+                    icon: "clock.fill",
+                    accentColor: .blue,
+                    progress: nil,
+                    showProgress: false
+                )
+            }
+        }
+    }
+
+    // MARK: - Service Status Card
+    private var serviceStatusCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
             // Pulsing status indicator
-            ZStack {
-                Circle()
-                    .fill(statusColor.opacity(0.15))
-                    .frame(width: 44, height: 44)
-
-                if appState.backendRunning && !reduceMotion {
+            HStack(spacing: 10) {
+                ZStack {
                     Circle()
-                        .stroke(statusColor.opacity(0.4), lineWidth: 2)
-                        .frame(width: 44, height: 44)
-                        .scaleEffect(pulse ? 1.4 : 1.0)
-                        .opacity(pulse ? 0 : 1)
-                        .animation(
-                            .easeOut(duration: 1.5).repeatForever(autoreverses: false),
-                            value: pulse
-                        )
+                        .fill(statusColor.opacity(0.15))
+                        .frame(width: 28, height: 28)
+
+                    if appState.backendRunning && !reduceMotion {
+                        Circle()
+                            .stroke(statusColor.opacity(0.4), lineWidth: 2)
+                            .frame(width: 28, height: 28)
+                            .scaleEffect(pulse ? 1.4 : 1.0)
+                            .opacity(pulse ? 0 : 1)
+                            .animation(
+                                .easeOut(duration: 1.5).repeatForever(autoreverses: false),
+                                value: pulse
+                            )
+                    }
+
+                    Circle()
+                        .fill(statusColor)
+                        .frame(width: 10, height: 10)
                 }
+                .onAppear { updatePulse() }
+                .onChange(of: appState.backendRunning) { _, _ in updatePulse() }
 
-                Circle()
-                    .fill(statusColor)
-                    .frame(width: 14, height: 14)
-            }
-            .onAppear { updatePulse() }
-            .onChange(of: appState.backendRunning) { _, _ in updatePulse() }
-
-            // Status Title
-            VStack(alignment: .leading, spacing: 2) {
                 Text(appState.statusTitle)
-                    .font(.system(size: 17, weight: .bold))
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(.primary)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
-            Spacer()
+            Spacer(minLength: 0)
 
             // Large Service Toggle Button
             if appState.isStarting || appState.isStopping {
@@ -86,19 +143,18 @@ struct DashboardView: View {
                         .controlSize(.small)
 
                     Text(appState.isStarting ? "正在启动后台服务…" : "正在停止…")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
+                .frame(maxWidth: .infinity)
             } else if appState.backendRunning {
                 Button {
                     Task { await appState.stopBackend() }
                 } label: {
                     Label("停止服务", systemImage: "power")
-                        .font(.system(size: 13, weight: .semibold))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 4)
+                        .font(.system(size: 12, weight: .semibold))
+                        .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
                 .tint(.red)
@@ -108,73 +164,144 @@ struct DashboardView: View {
                     Task { await appState.startBackend() }
                 } label: {
                     Label("启动服务", systemImage: "play.fill")
-                        .font(.system(size: 13, weight: .semibold))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 4)
+                        .font(.system(size: 12, weight: .semibold))
+                        .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(themeAccentColor)
                 .controlSize(.large)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(AppTheme.cardBackground(colorScheme: colorScheme))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(AppTheme.cardBorder(colorScheme: colorScheme), lineWidth: 1)
-                )
+        .padding(14)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .modifier(
+            MaterialSurface(
+                cornerRadius: 12,
+                borderColor: .clear,
+                borderWidth: 0,
+                hasShadow: true
+            )
         )
     }
 
-    // MARK: - Metrics Grid (8pt Grid Standardized)
-    private var metricsGrid: some View {
-        LazyVGrid(
-            columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 4),
-            spacing: 16
-        ) {
-            // Card 1: 成功
-            DashboardMetricCard(
-                title: "成功",
-                value: "\(successCount)",
-                icon: "paperplane.fill",
-                accentColor: themeAccentColor,
-                progress: deliveryProgress,
-                showProgress: true
-            )
+    // MARK: - Delivery Efficiency Card (Native Swift Charts Line Chart)
+    private var deliveryEfficiencyCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Text("投递效率")
+                    .font(.system(size: 14, weight: .bold))
 
-            // Card 2: 拦截
-            DashboardMetricCard(
-                title: "拦截",
-                value: "\(appState.metrics?.warning ?? 0)",
-                icon: "shield.lefthalf.filled",
-                accentColor: .orange,
-                progress: nil,
-                showProgress: false
-            )
+                Text(speedText)
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(themeAccentColor)
 
-            // Card 3: 异常
-            DashboardMetricCard(
-                title: "异常",
-                value: "\(appState.metrics?.danger ?? 0)",
-                icon: "exclamationmark.triangle.fill",
-                accentColor: (appState.metrics?.danger ?? 0) == 0 ? .secondary : .red,
-                progress: nil,
-                showProgress: false
-            )
+                Spacer(minLength: 4)
 
-            // Card 4: 耗时
-            DashboardMetricCard(
-                title: "耗时",
-                value: formatElapsed(appState.metrics?.elapsedSeconds ?? 0),
-                icon: "clock.fill",
-                accentColor: .blue,
-                progress: nil,
-                showProgress: false
-            )
+                Text(speedDetailText)
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
+            if dailySpeedPoints.isEmpty {
+                Text("暂无投递数据")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.tertiary)
+                    .frame(maxWidth: .infinity, minHeight: 90, maxHeight: .infinity, alignment: .center)
+            } else {
+                Chart(dailySpeedPoints) { point in
+                    LineMark(
+                        x: .value("日期", point.date),
+                        y: .value("速度", point.speed)
+                    )
+                    .foregroundStyle(themeAccentColor)
+                    .lineStyle(StrokeStyle(lineWidth: 2))
+                    .interpolationMethod(.catmullRom)
+
+                    PointMark(
+                        x: .value("日期", point.date),
+                        y: .value("速度", point.speed)
+                    )
+                    .foregroundStyle(themeAccentColor)
+                    .symbolSize(28)
+
+                    if let hoveredPoint {
+                        RuleMark(x: .value("日期", hoveredPoint.date))
+                            .foregroundStyle(Color.secondary.opacity(0.4))
+                            .annotation(
+                                position: .top,
+                                spacing: 4,
+                                overflowResolution: .init(x: .disabled, y: .disabled)
+                            ) {
+                                VStack(spacing: 2) {
+                                    Text(hoveredPoint.dateLabel)
+                                        .font(.system(size: 10))
+                                        .foregroundStyle(.secondary)
+
+                                    Text(
+                                        "\(String(format: "%.1f", hoveredPoint.speed)) 条/小时 · \(hoveredPoint.total) 条"
+                                    )
+                                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                                    .monospacedDigit()
+                                    .foregroundStyle(.primary)
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 5)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                        .fill(.regularMaterial)
+                                )
+                            }
+                    }
+                }
+                .chartXAxis {
+                    AxisMarks(values: .automatic) { value in
+                        AxisValueLabel(format: .dateTime.month(.twoDigits).day(.twoDigits))
+                    }
+                }
+                .chartYAxis {
+                    AxisMarks { value in
+                        AxisGridLine()
+                        AxisValueLabel()
+                    }
+                }
+                .chartYScale(domain: 0...speedUpperBound)
+                .chartOverlay { proxy in
+                    GeometryReader { geo in
+                        Rectangle()
+                            .fill(.clear)
+                            .contentShape(Rectangle())
+                            .onContinuousHover { phase in
+                                switch phase {
+                                case .active(let location):
+                                    guard let date: Date = proxy.value(atX: location.x) else {
+                                        return
+                                    }
+                                    hoveredPoint = dailySpeedPoints.min {
+                                        abs($0.date.timeIntervalSince(date))
+                                            < abs($1.date.timeIntervalSince(date))
+                                    }
+                                case .ended:
+                                    hoveredPoint = nil
+                                }
+                        }
+                    }
+                }
+                .frame(minHeight: 90, maxHeight: .infinity)
+                .padding(.top, 8)
+            }
         }
+        .padding(14)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .modifier(
+            MaterialSurface(
+                cornerRadius: 12,
+                borderColor: .clear,
+                borderWidth: 0,
+                hasShadow: true
+            )
+        )
     }
 
     // MARK: - Live Activity Feed (Hidden Scrollbar + Spring Animation)
@@ -229,14 +356,56 @@ struct DashboardView: View {
         }
         .padding(16)
         .frame(minHeight: 280, maxHeight: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(AppTheme.cardBackground(colorScheme: colorScheme))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(AppTheme.cardBorder(colorScheme: colorScheme), lineWidth: 1)
-                )
+        .modifier(
+            MaterialSurface(
+                cornerRadius: 12,
+                borderColor: .clear,
+                borderWidth: 0,
+                hasShadow: true
+            )
         )
+    }
+
+    // MARK: - Delivery Speed Chart Data
+    private var dailySpeedPoints: [DailySpeedPoint] {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return appState.dailySpeed.compactMap { item in
+            guard let date = formatter.date(from: item.date) else {
+                return nil
+            }
+            return DailySpeedPoint(date: date, speed: item.speedPerHour, total: item.total)
+        }
+    }
+
+    private var speedUpperBound: Double {
+        let maxSpeed = appState.dailySpeed.map(\.speedPerHour).max() ?? 0
+        return max(maxSpeed * 1.2, 1)
+    }
+
+    private var speedText: String {
+        guard let speed = appState.metrics?.speedPerHour else {
+            return "--"
+        }
+        return String(format: "%.1f 条/小时", speed)
+    }
+
+    private var speedDetailText: String {
+        guard let metrics = appState.metrics else {
+            return "暂无活跃数据"
+        }
+        var parts = ["活跃 \(formatActiveTime(metrics.activeSeconds ?? 0))"]
+        if let pauseCount = metrics.pauseCount, pauseCount > 0 {
+            parts.append(
+                "暂停 \(pauseCount) 次（\(formatActiveTime(metrics.pauseSeconds ?? 0))）"
+            )
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    private func formatActiveTime(_ seconds: Int) -> String {
+        if seconds <= 0 { return "0 分钟" }
+        return formatElapsed(seconds)
     }
 
     private var emptyFeedCard: some View {
@@ -302,11 +471,10 @@ private struct DashboardMetricCard: View {
     let accentColor: Color
     let progress: Double?
     let showProgress: Bool
-
-    @Environment(\.colorScheme) private var colorScheme
+    var progressCaption: String? = nil
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(title)
                     .font(.system(size: 12, weight: .semibold))
@@ -321,46 +489,75 @@ private struct DashboardMetricCard: View {
             }
 
             Text(value)
-                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .font(.system(size: 22, weight: .bold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(.primary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
                 .contentTransition(.numericText())
 
-            if showProgress, let progress {
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(Color.primary.opacity(0.08))
-                            .frame(height: 5)
+            Group {
+                if showProgress, let progress {
+                    VStack(alignment: .leading, spacing: 2) {
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                Capsule()
+                                    .fill(Color.primary.opacity(0.08))
+                                    .frame(height: 5)
 
-                        Capsule()
-                            .fill(
-                                LinearGradient(
-                                    colors: [accentColor.opacity(0.8), accentColor],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .frame(width: max(0, min(1, progress)) * geo.size.width, height: 5)
+                                Capsule()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [accentColor.opacity(0.8), accentColor],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .frame(
+                                        width: max(0, min(1, progress)) * geo.size.width,
+                                        height: 5
+                                    )
+                            }
+                        }
+                        .frame(height: 5)
+
+                        Text("\(progressCaption ?? "—")（\(Int(progress * 100))%）")
+                            .font(.system(size: 10, weight: .medium, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    Color.clear
                 }
-                .frame(height: 5)
-            } else {
-                Spacer()
-                    .frame(height: 5)
             }
+            .frame(height: 20, alignment: .top)
         }
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(AppTheme.cardBackground(colorScheme: colorScheme))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(AppTheme.cardBorder(colorScheme: colorScheme), lineWidth: 0.8)
-                )
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .modifier(
+            MaterialSurface(
+                cornerRadius: 12,
+                borderColor: .clear,
+                borderWidth: 0,
+                hasShadow: true
+            )
         )
+    }
+}
+
+private struct DailySpeedPoint: Identifiable {
+    let date: Date
+    let speed: Double
+    let total: Int
+    var id: Date { date }
+
+    var dateLabel: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MM-dd"
+        return formatter.string(from: date)
     }
 }
 

@@ -16,6 +16,20 @@ struct MetricsResponse: Codable {
     let elapsedSeconds: Int
     let firstEventAt: String?
     let lastEventAt: String?
+    let activeSeconds: Int?
+    let pauseCount: Int?
+    let pauseSeconds: Int?
+    let speedPerHour: Double?
+}
+
+struct DailySpeedItem: Codable, Identifiable {
+    let date: String
+    let total: Int
+    let activeSeconds: Int
+    let pauseCount: Int
+    let speedPerHour: Double
+
+    var id: String { date }
 }
 
 struct CrawlLogEntry: Codable {

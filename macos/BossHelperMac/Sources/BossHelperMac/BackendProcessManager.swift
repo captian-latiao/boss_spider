@@ -1,6 +1,7 @@
 import Darwin
 import Foundation
 
+@MainActor
 final class BackendProcessManager: ObservableObject {
     @Published private(set) var isRunning = false
     @Published private(set) var ownsProcess = false
@@ -248,17 +249,17 @@ final class BackendProcessManager: ObservableObject {
                 let entry = Self.makeEntry(rawText: rawText, prefix: prefix)
                 guard entry.category != .polling else { return }
                 print("backend-\(entry.text)")
-                if entry.category == .error {
-                    DispatchQueue.main.async { [weak self] in
+                Task { @MainActor [weak self] in
+                    if entry.category == .error {
                         self?.lastError = rawText
                     }
+                    self?.appendEntry(entry)
                 }
-                self?.appendEntry(entry)
             }
         }
     }
 
-    private static func makeEntry(
+    nonisolated private static func makeEntry(
         rawText: String,
         prefix: String
     ) -> BackendLogEntry {
@@ -298,7 +299,7 @@ final class BackendProcessManager: ObservableObject {
         )
     }
 
-    private static func cleanDeliveryLine(_ rawText: String) -> String {
+    nonisolated private static func cleanDeliveryLine(_ rawText: String) -> String {
         let withoutTag = rawText
             .replacingOccurrences(of: "[delivery]", with: "")
             .trimmingCharacters(in: .whitespaces)
@@ -307,7 +308,7 @@ final class BackendProcessManager: ObservableObject {
         return "收到投递数据：\(company) - \(jobName)"
     }
 
-    private static func value(after key: String, in text: String) -> String {
+    nonisolated private static func value(after key: String, in text: String) -> String {
         guard let range = text.range(of: key) else { return "" }
         let suffix = text[range.upperBound...]
         return String(suffix.split(separator: " ", maxSplits: 1).first ?? "")

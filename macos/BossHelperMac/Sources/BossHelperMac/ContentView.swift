@@ -35,6 +35,7 @@ struct ContentView: View {
 
     var body: some View {
         MainSplitView()
+            .background(VisualEffectBackground().ignoresSafeArea())
             .tint(accentColor)
             .accentColor(accentColor)
             .onAppear {
@@ -88,24 +89,26 @@ struct MainSplitView: View {
         .navigationTitle(activeTab.title)
         .navigationSplitViewStyle(.balanced)
         .toolbar {
-            ToolbarItemGroup(placement: .automatic) {
-                // Global Quick Action: Open BOSS Direct
-                Button {
-                    if let url = URL(string: "https://www.zhipin.com") {
-                        NSWorkspace.shared.open(url)
+            if activeTab == .dashboard {
+                ToolbarItemGroup(placement: .automatic) {
+                    // Global Quick Action: Open BOSS Direct
+                    Button {
+                        if let url = URL(string: "https://www.zhipin.com") {
+                            NSWorkspace.shared.open(url)
+                        }
+                    } label: {
+                        Label("打开 BOSS 直聘", systemImage: "safari")
                     }
-                } label: {
-                    Label("打开 BOSS 直聘", systemImage: "safari")
-                }
-                .help("在默认浏览器中打开 BOSS 直聘网页")
+                    .help("在默认浏览器中打开 BOSS 直聘网页")
 
-                // Global Refresh
-                Button {
-                    Task { await appState.refresh() }
-                } label: {
-                    Image(systemName: "arrow.clockwise")
+                    // Global Refresh
+                    Button {
+                        Task { await appState.refresh() }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .help("刷新数据状态")
                 }
-                .help("刷新数据状态")
             }
         }
     }
@@ -125,49 +128,6 @@ struct MainSidebarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Herooo Brand Header
-            HStack(spacing: 10) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    themeAccent,
-                                    themeAccent.opacity(0.8)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 32, height: 32)
-                        .shadow(color: themeAccent.opacity(0.3), radius: 3, y: 1.5)
-
-                    Image(systemName: "bolt.shield.fill")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(.white)
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Herooo")
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                        .fixedSize(horizontal: true, vertical: false)
-
-                    Text("智能求职副驾")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-
-                Spacer(minLength: 0)
-            }
-            .padding(.horizontal, 14)
-            .padding(.top, 12)
-            .padding(.bottom, 12)
-
-            Divider()
-
             // Main Tabs List (Theme Accent Selection & Full-Width Hit Test)
             VStack(spacing: 3) {
                 ForEach(mainTabs) { tab in
@@ -181,7 +141,7 @@ struct MainSidebarView: View {
                 }
             }
             .padding(.horizontal, 8)
-            .padding(.top, 8)
+            .padding(.top, 12)
 
             Spacer()
 

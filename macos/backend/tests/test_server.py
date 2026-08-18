@@ -73,6 +73,19 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(metrics["total"], 1)
         self.assertEqual(metrics["success"], 1)
+        self.assertIn("active_seconds", metrics)
+        self.assertIn("pause_count", metrics)
+        self.assertIn("speed_per_hour", metrics)
+
+        status, series = self.request_json("GET", "/api/metrics/speed?days=3")
+        self.assertEqual(status, 200)
+        self.assertIsInstance(series, list)
+        self.assertEqual(len(series), 3)
+        self.assertIn("date", series[0])
+        self.assertIn("total", series[0])
+        self.assertIn("active_seconds", series[0])
+        self.assertIn("pause_count", series[0])
+        self.assertIn("speed_per_hour", series[0])
 
         status, config = self.request_json(
             "POST",

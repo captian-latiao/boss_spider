@@ -14,6 +14,7 @@ final class AppState: ObservableObject {
     @Published var metrics: MetricsResponse?
     @Published var crawlStatus: CrawlStatusResponse?
     @Published var recentEvents: [DeliveryEventItem] = []
+    @Published var dailySpeed: [DailySpeedItem] = []
     @Published var jobs: [JobItem] = []
     @Published var isJobsLoading: Bool = false
     @Published var errorMessage: String?
@@ -40,7 +41,9 @@ final class AppState: ObservableObject {
 
     deinit {
         pollTask?.cancel()
-        processManager.stop()
+        MainActor.assumeIsolated {
+            processManager.stop()
+        }
     }
 
     var backendRunning: Bool {
@@ -199,6 +202,12 @@ final class AppState: ObservableObject {
             recentEvents = try await backendClient.recentEvents(limit: 30)
         } catch {
             // Keep existing events if error
+        }
+
+        do {
+            dailySpeed = try await backendClient.dailySpeed(days: 7)
+        } catch {
+            // Keep existing series if error
         }
     }
 

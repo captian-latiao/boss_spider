@@ -36,6 +36,10 @@ struct BackendClient {
         try await get("/api/metrics/today")
     }
 
+    func dailySpeed(days: Int = 7) async throws -> [DailySpeedItem] {
+        try await get("/api/metrics/speed?days=\(days)")
+    }
+
     func recentEvents(limit: Int = 50) async throws -> [DeliveryEventItem] {
         try await get("/api/events/recent?limit=\(limit)")
     }

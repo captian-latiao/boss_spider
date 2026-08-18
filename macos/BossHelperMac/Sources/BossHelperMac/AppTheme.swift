@@ -55,12 +55,6 @@ enum AppTheme {
         return accentColor(accent: accentKey, colorScheme: colorScheme)
     }
 
-    static func cardBackground(colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark
-            ? Color.white.opacity(0.06)
-            : Color.black.opacity(0.03)
-    }
-
     static func cardBorder(colorScheme: ColorScheme) -> Color {
         colorScheme == .dark
             ? Color.white.opacity(0.10)

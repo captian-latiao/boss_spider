@@ -65,6 +65,9 @@ class BossHelperHandler(BaseHTTPRequestHandler):
             )
         elif path == "/api/metrics/today":
             self._send_json(200, self.store.get_today_metrics())
+        elif path == "/api/metrics/speed":
+            days_val = int(query.get("days", ["7"])[0]) if query.get("days") else 7
+            self._send_json(200, self.store.get_daily_speed(days_val))
         elif path == "/api/events/recent":
             limit_val = int(query.get("limit", ["50"])[0]) if query.get("limit") else 50
             self._send_json(200, self.store.get_recent_events(limit_val))

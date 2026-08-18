@@ -194,8 +194,6 @@ private struct AboutHeroooPane: View {
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
 
-            Divider()
-
             LabeledContent("后端版本") {
                 Text(appState.health?.version ?? "0.1.0")
                     .font(.body.monospaced())

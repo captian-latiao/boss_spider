@@ -25,7 +25,6 @@ struct JobsView: View {
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("accentColor") private var accentColorKey = "pink"
 
-    @State private var searchText = ""
     @State private var statusFilter: JobStatusFilter = .all
     @State private var selectedJob: JobItem?
     @State private var isInspectorPresented = false
@@ -45,25 +44,15 @@ struct JobsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header Filter Toolbar
-            headerFilterBar
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-
-            Divider()
-
-            // Main Content Area
-            if appState.isJobsLoading {
-                Spacer()
-                ProgressView("正在加载职位资产…")
-                Spacer()
-            } else if appState.jobs.isEmpty {
-                emptyJobsView
-            } else {
-                jobsList
+            // Status Tabs
+            TabView(selection: $statusFilter) {
+                ForEach(JobStatusFilter.allCases) { filter in
+                    jobsContent
+                        .tabItem { Text(filter.title) }
+                        .tag(filter)
+                }
             }
-
-            Divider()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             // Bottom Data Toolstrip
             bottomDataToolbar
@@ -71,7 +60,6 @@ struct JobsView: View {
                 .padding(.vertical, 10)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(nsColor: .windowBackgroundColor))
         // Apple Native macOS Inspector Drawer
         .inspector(isPresented: $isInspectorPresented) {
             if let job = selectedJob {
@@ -82,90 +70,32 @@ struct JobsView: View {
             } else {
                 ContentUnavailableView("未选定职位", systemImage: "briefcase", description: Text("请在左侧列表中点击任一职位查看 JD 详情。"))
                     .inspectorColumnWidth(min: 340, ideal: 400, max: 540)
-                    .background(Color(nsColor: .windowBackgroundColor))
             }
         }
         .task {
-            await appState.fetchJobs(status: statusFilter.rawValue, keyword: searchText)
+            await appState.fetchJobs(status: statusFilter.rawValue)
         }
         .onChange(of: statusFilter) { _, newValue in
             Task {
-                await appState.fetchJobs(status: newValue.rawValue, keyword: searchText)
+                await appState.fetchJobs(status: newValue.rawValue)
             }
         }
     }
 
-    // MARK: - Header Filter Bar
-    private var headerFilterBar: some View {
-        HStack(spacing: 12) {
-            // Search field
-            HStack(spacing: 6) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.secondary)
-                    .font(.system(size: 13))
-
-                TextField("搜索岗位、公司、城市、关键词或过滤原因…", text: $searchText)
-                    .textFieldStyle(.plain)
-                    .font(.system(size: 13))
-                    .onSubmit {
-                        Task {
-                            await appState.fetchJobs(
-                                status: statusFilter.rawValue,
-                                keyword: searchText
-                            )
-                        }
-                    }
-
-                if !searchText.isEmpty {
-                    Button {
-                        searchText = ""
-                        Task {
-                            await appState.fetchJobs(
-                                status: statusFilter.rawValue,
-                                keyword: ""
-                            )
-                        }
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
+    // MARK: - Jobs Content
+    private var jobsContent: some View {
+        Group {
+            if appState.isJobsLoading {
+                VStack(spacing: 12) {
+                    Spacer()
+                    ProgressView("正在加载职位资产…")
+                    Spacer()
                 }
+            } else if appState.jobs.isEmpty {
+                emptyJobsView
+            } else {
+                jobsList
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(AppTheme.cardBackground(colorScheme: colorScheme))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .stroke(AppTheme.cardBorder(colorScheme: colorScheme), lineWidth: 0.8)
-                    )
-            )
-
-            // Status filter
-            Picker("状态筛选", selection: $statusFilter) {
-                ForEach(JobStatusFilter.allCases) { filter in
-                    Text(filter.title).tag(filter)
-                }
-            }
-            .labelsHidden()
-            .pickerStyle(.segmented)
-            .controlSize(.regular)
-
-            // Refresh button
-            Button {
-                Task {
-                    await appState.fetchJobs(
-                        status: statusFilter.rawValue,
-                        keyword: searchText
-                    )
-                }
-            } label: {
-                Image(systemName: "arrow.clockwise")
-            }
-            .help("刷新职位列表")
-            .controlSize(.regular)
         }
     }
 
@@ -179,6 +109,7 @@ struct JobsView: View {
                         isSelected: selectedJob?.id == job.id && isInspectorPresented,
                         themeAccent: themeAccentColor
                     ) {
+                        guard job.isFilter else { return }
                         selectedJob = job
                         isInspectorPresented = true
                     }
@@ -208,7 +139,7 @@ struct JobsView: View {
 
             Button("重新检索") {
                 Task {
-                    await appState.fetchJobs(status: statusFilter.rawValue, keyword: searchText)
+                    await appState.fetchJobs(status: statusFilter.rawValue)
                 }
             }
             .controlSize(.regular)
@@ -233,6 +164,16 @@ struct JobsView: View {
             }
 
             Spacer(minLength: 4)
+
+            Button {
+                Task {
+                    await appState.fetchJobs(status: statusFilter.rawValue)
+                }
+            } label: {
+                Image(systemName: "arrow.clockwise")
+            }
+            .help("刷新职位列表")
+            .controlSize(.regular)
 
             Button {
                 NSWorkspace.shared.open(csvDirectory)
@@ -278,7 +219,7 @@ struct JobsView: View {
             let paths = panel.urls.map(\.path)
             Task {
                 await appState.importPaths(paths)
-                await appState.fetchJobs(status: statusFilter.rawValue, keyword: searchText)
+                await appState.fetchJobs(status: statusFilter.rawValue)
             }
         }
     }
@@ -374,25 +315,16 @@ private struct JobCardRow: View {
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 10)
-            .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(cardBackground)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .stroke(isSelected ? themeAccent : AppTheme.cardBorder(colorScheme: colorScheme), lineWidth: isSelected ? 1.5 : 0.8)
-                    )
+            .modifier(
+                MaterialSurface(
+                    cornerRadius: 8,
+                    borderColor: isSelected ? themeAccent : AppTheme.cardBorder(colorScheme: colorScheme),
+                    borderWidth: isSelected ? 1.5 : 0.8,
+                    tint: isSelected ? themeAccent.opacity(0.09) : .clear
+                )
             )
         }
         .buttonStyle(.plain)
-    }
-
-    private var cardBackground: Color {
-        if isSelected {
-            return themeAccent.opacity(0.09)
-        }
-        return colorScheme == .dark
-            ? Color.white.opacity(0.035)
-            : Color.black.opacity(0.02)
     }
 }
 
@@ -434,9 +366,7 @@ private struct JobInspectorView: View {
             .padding(.top, 16) // Clear the toolbar shadow mask
             .padding(.bottom, 12)
 
-            Divider()
-
-            // Pure JD Body (Solid Background, Zero Wallpaper Bleed)
+            // Pure JD Body
             if let desc = job.postDescription, !desc.isEmpty {
                 ScrollView {
                     Text(highlightedJD(text: desc, keyword: job.matchedKeyword))
@@ -455,7 +385,6 @@ private struct JobInspectorView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .background(Color(nsColor: .windowBackgroundColor))
     }
 
     // MARK: - JD Keyword Highlighting Engine

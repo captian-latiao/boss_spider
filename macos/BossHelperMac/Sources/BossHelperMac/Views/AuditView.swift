@@ -27,7 +27,6 @@ struct AuditView: View {
     @AppStorage("accentColor") private var accentColorKey = "pink"
 
     @State private var filter: LogFilter = .all
-    @State private var searchKeyword = ""
     @State private var isRawTextView = false
 
     private var themeAccentColor: Color {
@@ -36,19 +35,10 @@ struct AuditView: View {
 
     private var filteredEntries: [BackendLogEntry] {
         let entries = appState.processManager.logEntries
-        let categoryFiltered: [BackendLogEntry]
         if filter == .all {
-            categoryFiltered = entries
-        } else {
-            categoryFiltered = entries.filter { $0.category.rawValue == filter.rawValue }
+            return entries
         }
-
-        if searchKeyword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return categoryFiltered
-        }
-        return categoryFiltered.filter {
-            $0.text.localizedCaseInsensitiveContains(searchKeyword)
-        }
+        return entries.filter { $0.category.rawValue == filter.rawValue }
     }
 
     private var filteredRawText: String {
@@ -59,76 +49,56 @@ struct AuditView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header Controls (8pt Standardized)
-            HStack(spacing: 12) {
-                // Category Filter
-                Picker("日志分类", selection: $filter) {
-                    ForEach(LogFilter.allCases) { item in
-                        Text(item.title).tag(item)
+            // Category Tabs
+            TabView(selection: $filter) {
+                ForEach(LogFilter.allCases) { item in
+                    VStack(spacing: 0) {
+                        logActionBar
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 6)
+
+                        logContent
                     }
+                    .tabItem { Text(item.title) }
+                    .tag(item)
                 }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-                .controlSize(.regular)
-
-                // Search in logs
-                HStack(spacing: 4) {
-                    Image(systemName: "magnifyingglass")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-
-                    TextField("搜索日志内容…", text: $searchKeyword)
-                        .textFieldStyle(.plain)
-                        .font(.system(size: 12))
-
-                    if !searchKeyword.isEmpty {
-                        Button {
-                            searchKeyword = ""
-                        } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.secondary)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 5)
-                .background(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(AppTheme.cardBackground(colorScheme: colorScheme))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .stroke(AppTheme.cardBorder(colorScheme: colorScheme), lineWidth: 0.8)
-                        )
-                )
-
-                Spacer()
-
-                // Toggle Raw Text / Card list
-                Button {
-                    isRawTextView.toggle()
-                } label: {
-                    Label(isRawTextView ? "卡片视图" : "终端视图", systemImage: isRawTextView ? "rectangle.grid.1x2" : "terminal")
-                }
-                .controlSize(.small)
-
-                // Copy all
-                Button {
-                    let pb = NSPasteboard.general
-                    pb.clearContents()
-                    pb.setString(filteredRawText, forType: .string)
-                } label: {
-                    Image(systemName: "doc.on.doc")
-                }
-                .help("复制当前筛选的全部日志")
-                .controlSize(.small)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            Divider()
+            // Footer Diagnostics Bar (8pt Standardized)
+            diagnosticsFooter
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+        }
+    }
 
-            // Main log stream (8pt Standardized)
+    // MARK: - Log Action Bar (Right-Aligned)
+    private var logActionBar: some View {
+        HStack(spacing: 12) {
+            Spacer()
+
+            Button {
+                isRawTextView.toggle()
+            } label: {
+                Label(isRawTextView ? "卡片视图" : "终端视图", systemImage: isRawTextView ? "rectangle.grid.1x2" : "terminal")
+            }
+            .controlSize(.small)
+
+            Button {
+                let pb = NSPasteboard.general
+                pb.clearContents()
+                pb.setString(filteredRawText, forType: .string)
+            } label: {
+                Image(systemName: "doc.on.doc")
+            }
+            .help("复制当前筛选的全部日志")
+            .controlSize(.small)
+        }
+    }
+
+    // MARK: - Log Content
+    private var logContent: some View {
+        Group {
             if filteredEntries.isEmpty {
                 emptyLogsView
             } else if isRawTextView {
@@ -138,13 +108,6 @@ struct AuditView: View {
             } else {
                 structuredLogList
             }
-
-            Divider()
-
-            // Footer Diagnostics Bar (8pt Standardized)
-            diagnosticsFooter
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
         }
     }
 

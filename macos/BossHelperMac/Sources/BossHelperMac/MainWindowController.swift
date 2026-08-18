@@ -35,11 +35,13 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         window.title = "Herooo"
         window.titleVisibility = .visible
         window.titlebarAppearsTransparent = true
-        window.titlebarSeparatorStyle = .automatic
+        window.titlebarSeparatorStyle = .none
         window.toolbarStyle = .unified
         window.isMovableByWindowBackground = true
+        window.isOpaque = false
+        window.backgroundColor = .clear
         window.setFrameAutosaveName("HeroooMainWindow")
-        window.minSize = NSSize(width: 860, height: 580)
+        window.minSize = NSSize(width: 860, height: 700)
         window.center()
         window.delegate = self
 

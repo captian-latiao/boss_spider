@@ -4,7 +4,7 @@ import json
 import sqlite3
 import threading
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -48,6 +48,55 @@ JOB_COLUMNS = [
 
 def _now() -> str:
     return datetime.now().isoformat(timespec="seconds")
+
+
+PAUSE_THRESHOLD_SECONDS = 300
+
+
+def compute_speed_stats(event_times: Iterable[str]) -> dict[str, Any]:
+    """Pause-aware delivery speed stats from ISO event timestamps.
+
+    Gaps between consecutive events that exceed PAUSE_THRESHOLD_SECONDS are
+    treated as pauses: the whole gap is excluded from active time. Speed is
+    total deliveries divided by active time in hours.
+    """
+    parsed: list[datetime] = []
+    for raw in event_times:
+        try:
+            parsed.append(datetime.fromisoformat(raw))
+        except ValueError:
+            continue
+
+    if len(parsed) < 2:
+        return {
+            "active_seconds": 0,
+            "pause_count": 0,
+            "pause_seconds": 0,
+            "speed_per_hour": 0,
+        }
+
+    parsed.sort()
+    active_seconds = 0
+    pause_count = 0
+    pause_seconds = 0
+    for prev, curr in zip(parsed, parsed[1:]):
+        gap = max(0, int((curr - prev).total_seconds()))
+        if gap > PAUSE_THRESHOLD_SECONDS:
+            pause_count += 1
+            pause_seconds += gap
+        else:
+            active_seconds += gap
+
+    speed_per_hour = 0
+    if active_seconds > 0:
+        speed_per_hour = len(parsed) / (active_seconds / 3600)
+
+    return {
+        "active_seconds": active_seconds,
+        "pause_count": pause_count,
+        "pause_seconds": pause_seconds,
+        "speed_per_hour": round(speed_per_hour, 2),
+    }
 
 
 class SQLiteStore:
@@ -190,6 +239,7 @@ class SQLiteStore:
         filter_reason: str = "",
         filter_detail: str = "",
         raw_json: str | None = None,
+        event_time: str | None = None,
     ) -> None:
         with self._lock, self._connection() as conn:
             conn.execute(
@@ -204,7 +254,7 @@ class SQLiteStore:
                     deliver_status or "pending",
                     filter_reason or "",
                     filter_detail or "",
-                    _now(),
+                    event_time or _now(),
                     raw_json or "",
                 ),
             )
@@ -232,6 +282,12 @@ class SQLiteStore:
                 "ORDER BY updated_at DESC LIMIT 1"
             ).fetchone()
 
+            event_rows = conn.execute(
+                "SELECT event_time FROM delivery_events "
+                "WHERE substr(event_time, 1, 10) = ?",
+                (date_key,),
+            ).fetchall()
+
         first = row["first_event_at"] if row else None
         last = row["last_event_at"] if row else None
         elapsed_seconds = 0
@@ -242,6 +298,10 @@ class SQLiteStore:
                 elapsed_seconds = max(0, int((last_dt - first_dt).total_seconds()))
             except ValueError:
                 elapsed_seconds = 0
+
+        speed_stats = compute_speed_stats(
+            event_row["event_time"] for event_row in event_rows
+        )
 
         return {
             "date": date_key,
@@ -255,7 +315,46 @@ class SQLiteStore:
             "delivery_limit": int(config_row["delivery_limit"])
             if config_row
             else None,
+            **speed_stats,
         }
+
+    def get_daily_speed(self, days: int = 7) -> list[dict[str, Any]]:
+        days = max(1, min(days, 90))
+        now = datetime.now()
+        start = (now - timedelta(days=days - 1)).strftime("%Y-%m-%d")
+
+        with self._lock, self._connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT event_time FROM delivery_events
+                WHERE event_time >= ?
+                ORDER BY event_time
+                """,
+                (start,),
+            ).fetchall()
+
+        by_date: dict[str, list[str]] = {}
+        for row in rows:
+            date_key = row["event_time"][:10]
+            if date_key >= start:
+                by_date.setdefault(date_key, []).append(row["event_time"])
+
+        result: list[dict[str, Any]] = []
+        for offset in range(days):
+            date_key = (now - timedelta(days=days - 1 - offset)).strftime(
+                "%Y-%m-%d"
+            )
+            stats = compute_speed_stats(by_date.get(date_key, []))
+            result.append(
+                {
+                    "date": date_key,
+                    "total": len(by_date.get(date_key, [])),
+                    "active_seconds": stats["active_seconds"],
+                    "pause_count": stats["pause_count"],
+                    "speed_per_hour": stats["speed_per_hour"],
+                }
+            )
+        return result
 
     def save_config(
         self,
