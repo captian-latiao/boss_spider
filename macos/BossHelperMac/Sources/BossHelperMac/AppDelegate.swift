@@ -4,6 +4,7 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let appState = AppState()
     private var mainWindowController: MainWindowController?
+    private var menuBarController: MenuBarController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         configureMainMenu()
@@ -13,6 +14,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         mainWindowController = controller
         controller.showWindow(nil)
         NSApp.activate(ignoringOtherApps: true)
+
+        menuBarController = MenuBarController(appState: appState)
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {

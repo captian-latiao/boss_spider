@@ -48,27 +48,29 @@ struct AuditView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Category Tabs
-            TabView(selection: $filter) {
-                ForEach(LogFilter.allCases) { item in
-                    VStack(spacing: 0) {
-                        logActionBar
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 6)
+        GlassEffectContainer {
+            VStack(spacing: 0) {
+                // Category Tabs
+                TabView(selection: $filter) {
+                    ForEach(LogFilter.allCases) { item in
+                        VStack(spacing: 0) {
+                            logActionBar
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 6)
 
-                        logContent
+                            logContent
+                        }
+                        .tabItem { Text(item.title) }
+                        .tag(item)
                     }
-                    .tabItem { Text(item.title) }
-                    .tag(item)
                 }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Footer Diagnostics Bar (8pt Standardized)
-            diagnosticsFooter
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
+                // Footer Diagnostics Bar (8pt Standardized)
+                diagnosticsFooter
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+            }
         }
     }
 
@@ -133,10 +135,10 @@ struct AuditView: View {
                 .foregroundStyle(.secondary.opacity(0.6))
 
             Text("暂无符合条件的运行日志")
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: AppFontSize.title, weight: .semibold))
 
             Text("本地后端启动或处理投递事件时，实时诊断日志将在此处记录。")
-                .font(.system(size: 12))
+                .font(.system(size: AppFontSize.callout))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
 
@@ -154,19 +156,19 @@ struct AuditView: View {
                     .frame(width: 7, height: 7)
 
                 Text(appState.backendRunning ? "已连接后台服务" : "后台未运行")
-                    .font(.system(size: 11))
+                    .font(.system(size: AppFontSize.caption))
                     .foregroundStyle(.secondary)
             }
 
             Text("当前展示 \(filteredEntries.count) 条日志")
-                .font(.system(size: 11))
+                .font(.system(size: AppFontSize.caption))
                 .foregroundStyle(.tertiary)
 
             Spacer()
 
             if let err = appState.errorMessage {
                 Text(err)
-                    .font(.system(size: 11))
+                    .font(.system(size: AppFontSize.caption))
                     .foregroundStyle(.red)
                     .lineLimit(1)
             }
@@ -189,7 +191,7 @@ private struct StructuredLogRow: View {
         HStack(alignment: .top, spacing: 10) {
             // Time stamp
             Text(formattedTime(entry.timestamp))
-                .font(.system(size: 11, design: .monospaced))
+                .font(.system(size: AppFontSize.caption, design: .monospaced))
                 .foregroundStyle(.tertiary)
                 .frame(width: 58, alignment: .leading)
                 .padding(.top, 2)
@@ -197,10 +199,10 @@ private struct StructuredLogRow: View {
             // Category badge
             HStack(spacing: 4) {
                 Image(systemName: entry.category.icon)
-                    .font(.system(size: 9))
+                    .font(.system(size: 10))
 
                 Text(entry.category.title)
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.system(size: AppFontSize.caption, weight: .semibold))
             }
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
@@ -211,7 +213,7 @@ private struct StructuredLogRow: View {
 
             // Log content
             Text(entry.text)
-                .font(.system(size: 12, design: .monospaced))
+                .font(.system(size: AppFontSize.mono, design: .monospaced))
                 .foregroundStyle(textColor)
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -231,9 +233,13 @@ private struct StructuredLogRow: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(rowBackground)
+        .modifier(
+            MaterialSurface(
+                cornerRadius: 8,
+                borderColor: AppTheme.cardBorder(colorScheme: colorScheme),
+                borderWidth: 0.5,
+                tint: entry.category == .error ? Color.red.opacity(0.06) : .clear
+            )
         )
     }
 
@@ -251,15 +257,6 @@ private struct StructuredLogRow: View {
             return .red
         }
         return .primary
-    }
-
-    private var rowBackground: Color {
-        if entry.category == .error {
-            return Color.red.opacity(0.06)
-        }
-        return colorScheme == .dark
-            ? Color.white.opacity(0.03)
-            : Color.black.opacity(0.02)
     }
 
     private func formattedTime(_ date: Date) -> String {

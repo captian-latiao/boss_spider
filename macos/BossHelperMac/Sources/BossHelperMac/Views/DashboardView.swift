@@ -27,12 +27,21 @@ struct DashboardView: View {
         return min(max(Double(successCount) / Double(deliveryLimit), 0), 1)
     }
 
+    private var displayEvents: [DeliveryEventItem] {
+        Array(appState.recentEvents.prefix(5))
+    }
+
+    private var displayEventIDs: [Int] {
+        displayEvents.map(\.id)
+    }
+
     var body: some View {
         GlassEffectContainer {
             VStack(spacing: 16) {
                 // 1+2. Unified 4-column grid: service(1) + efficiency(3),
                 // then the four metric cards (1 each)
                 mainGrid
+                    .frame(maxHeight: 260)
 
                 // 3. Live Activity Feed
                 liveActivitySection
@@ -106,12 +115,12 @@ struct DashboardView: View {
                 ZStack {
                     Circle()
                         .fill(statusColor.opacity(0.15))
-                        .frame(width: 28, height: 28)
+                        .frame(width: 22, height: 22)
 
                     if appState.backendRunning && !reduceMotion {
                         Circle()
                             .stroke(statusColor.opacity(0.4), lineWidth: 2)
-                            .frame(width: 28, height: 28)
+                            .frame(width: 22, height: 22)
                             .scaleEffect(pulse ? 1.4 : 1.0)
                             .opacity(pulse ? 0 : 1)
                             .animation(
@@ -122,13 +131,13 @@ struct DashboardView: View {
 
                     Circle()
                         .fill(statusColor)
-                        .frame(width: 10, height: 10)
+                        .frame(width: 8, height: 8)
                 }
                 .onAppear { updatePulse() }
                 .onChange(of: appState.backendRunning) { _, _ in updatePulse() }
 
                 Text(appState.statusTitle)
-                    .font(.system(size: 15, weight: .bold))
+                    .font(.system(size: AppFontSize.title, weight: .bold))
                     .foregroundStyle(.primary)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
@@ -143,7 +152,7 @@ struct DashboardView: View {
                         .controlSize(.small)
 
                     Text(appState.isStarting ? "正在启动后台服务…" : "正在停止…")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.system(size: AppFontSize.callout, weight: .medium))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
@@ -153,7 +162,7 @@ struct DashboardView: View {
                     Task { await appState.stopBackend() }
                 } label: {
                     Label("停止服务", systemImage: "power")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: AppFontSize.callout, weight: .semibold))
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
@@ -164,7 +173,7 @@ struct DashboardView: View {
                     Task { await appState.startBackend() }
                 } label: {
                     Label("启动服务", systemImage: "play.fill")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: AppFontSize.callout, weight: .semibold))
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
@@ -189,24 +198,24 @@ struct DashboardView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text("投递效率")
-                    .font(.system(size: 14, weight: .bold))
+                    .font(.system(size: AppFontSize.title, weight: .bold))
 
                 Text(speedText)
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .font(.system(size: AppFontSize.body, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .foregroundStyle(themeAccentColor)
 
                 Spacer(minLength: 4)
 
                 Text(speedDetailText)
-                    .font(.system(size: 10.5))
+                    .font(.system(size: AppFontSize.caption))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
 
             if dailySpeedPoints.isEmpty {
                 Text("暂无投递数据")
-                    .font(.system(size: 11))
+                    .font(.system(size: AppFontSize.caption))
                     .foregroundStyle(.tertiary)
                     .frame(maxWidth: .infinity, minHeight: 90, maxHeight: .infinity, alignment: .center)
             } else {
@@ -236,13 +245,13 @@ struct DashboardView: View {
                             ) {
                                 VStack(spacing: 2) {
                                     Text(hoveredPoint.dateLabel)
-                                        .font(.system(size: 10))
+                                        .font(.system(size: AppFontSize.caption))
                                         .foregroundStyle(.secondary)
 
                                     Text(
                                         "\(String(format: "%.1f", hoveredPoint.speed)) 条/小时 · \(hoveredPoint.total) 条"
                                     )
-                                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                                    .font(.system(size: AppFontSize.caption, weight: .semibold, design: .rounded))
                                     .monospacedDigit()
                                     .foregroundStyle(.primary)
                                 }
@@ -288,7 +297,7 @@ struct DashboardView: View {
                         }
                     }
                 }
-                .frame(minHeight: 90, maxHeight: .infinity)
+                .frame(height: 90)
                 .padding(.top, 8)
             }
         }
@@ -314,10 +323,10 @@ struct DashboardView: View {
                         .foregroundStyle(themeAccentColor)
 
                     Text("实时动态")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: AppFontSize.title, weight: .bold))
 
-                    Text("\(appState.recentEvents.count)")
-                        .font(.system(size: 10.5, weight: .semibold, design: .rounded))
+                    Text("\(displayEvents.count)")
+                        .font(.system(size: AppFontSize.caption, weight: .semibold, design: .rounded))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 1.5)
                         .background(themeAccentColor.opacity(0.15))
@@ -328,34 +337,35 @@ struct DashboardView: View {
                 Spacer()
 
                 Text("实时自动同步")
-                    .font(.system(size: 11))
+                    .font(.system(size: AppFontSize.caption))
                     .foregroundStyle(.secondary)
             }
 
             if appState.recentEvents.isEmpty {
                 emptyFeedCard
             } else {
-                ScrollView(showsIndicators: false) {
-                    LazyVStack(spacing: 8) {
-                        ForEach(appState.recentEvents) { event in
-                            LiveEventRow(event: event, themeAccent: themeAccentColor)
-                                .transition(.asymmetric(
-                                    insertion: .move(edge: .top).combined(with: .opacity),
-                                    removal: .opacity
-                                ))
-                        }
+                VStack(spacing: 8) {
+                    ForEach(displayEvents) { event in
+                        LiveEventRow(event: event, themeAccent: themeAccentColor)
+                            .id(event.id)
+                            .frame(maxHeight: .infinity)
+                            .transition(.asymmetric(
+                                insertion: .move(edge: .top).combined(with: .opacity),
+                                removal: .opacity
+                            ))
                     }
-                    .padding(.vertical, 2)
-                    .animation(
-                        reduceMotion ? nil : .spring(response: 0.38, dampingFraction: 0.78),
-                        value: appState.recentEvents.count
-                    )
                 }
-                .scrollIndicators(.hidden)
+                .padding(.vertical, 2)
+                .animation(
+                    reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.8),
+                    value: displayEventIDs
+                )
+                .frame(maxHeight: .infinity)
             }
         }
-        .padding(16)
-        .frame(minHeight: 280, maxHeight: .infinity)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .frame(minHeight: 323, maxHeight: 380)
         .modifier(
             MaterialSurface(
                 cornerRadius: 12,
@@ -422,10 +432,10 @@ struct DashboardView: View {
             }
 
             Text("等待投递数据注入…")
-                .font(.system(size: 13, weight: .semibold))
+                .font(.system(size: AppFontSize.body, weight: .semibold))
 
             Text("在 Chrome 浏览器中打开 BOSS 直聘并启用插件，实时投递与过滤详情将即刻在此展现。")
-                .font(.system(size: 11.5))
+                .font(.system(size: AppFontSize.callout))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 360)
@@ -477,19 +487,19 @@ private struct DashboardMetricCard: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(title)
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.system(size: AppFontSize.callout, weight: .semibold))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
 
                 Spacer(minLength: 2)
 
                 Image(systemName: icon)
-                    .font(.system(size: 12.5, weight: .semibold))
+                    .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(accentColor)
             }
 
             Text(value)
-                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .font(.system(size: AppFontSize.display, weight: .bold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(.primary)
                 .lineLimit(1)
@@ -522,7 +532,7 @@ private struct DashboardMetricCard: View {
                         .frame(height: 5)
 
                         Text("\(progressCaption ?? "—")（\(Int(progress * 100))%）")
-                            .font(.system(size: 10, weight: .medium, design: .rounded))
+                            .font(.system(size: AppFontSize.caption, weight: .medium, design: .rounded))
                             .monospacedDigit()
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
@@ -575,13 +585,13 @@ private struct LiveEventRow: View {
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 8) {
                     Text(event.jobName?.isEmpty == false ? event.jobName! : "职位投递事件")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: AppFontSize.body, weight: .semibold))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
 
                     if let salary = event.salaryRange, !salary.isEmpty {
                         Text(salary)
-                            .font(.system(size: 11.5, weight: .bold, design: .rounded))
+                            .font(.system(size: AppFontSize.callout, weight: .bold, design: .rounded))
                             .foregroundStyle(themeAccent)
                             .lineLimit(1)
                             .layoutPriority(1)
@@ -589,7 +599,7 @@ private struct LiveEventRow: View {
 
                     if let area = event.jobArea, !area.isEmpty {
                         Text(area)
-                            .font(.system(size: 11))
+                            .font(.system(size: AppFontSize.caption))
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
@@ -598,14 +608,14 @@ private struct LiveEventRow: View {
                 HStack(spacing: 6) {
                     if let company = event.jobCompany, !company.isEmpty {
                         Text(company)
-                            .font(.system(size: 11, weight: .medium))
+                            .font(.system(size: AppFontSize.caption, weight: .medium))
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
 
                     if let boss = event.bossName, !boss.isEmpty {
                         Text("· \(boss) \(event.bossTitle ?? "")")
-                            .font(.system(size: 11))
+                            .font(.system(size: AppFontSize.caption))
                             .foregroundStyle(.tertiary)
                             .lineLimit(1)
                     }
@@ -618,29 +628,29 @@ private struct LiveEventRow: View {
             VStack(alignment: .trailing, spacing: 2.5) {
                 if event.isSuccess {
                     Text("打招呼已发送")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.system(size: AppFontSize.caption, weight: .medium))
                         .foregroundStyle(.green)
                         .lineLimit(1)
                 } else if event.isFilter {
                     Text(event.filterReason?.isEmpty == false ? event.filterReason! : "已智能过滤")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.system(size: AppFontSize.caption, weight: .medium))
                         .foregroundStyle(.orange)
                         .lineLimit(1)
                 } else {
                     Text(event.filterReason?.isEmpty == false ? event.filterReason! : "投递失败")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.system(size: AppFontSize.caption, weight: .medium))
                         .foregroundStyle(.red)
                         .lineLimit(1)
                 }
 
                 Text(event.formattedTime)
-                    .font(.system(size: 10, design: .monospaced))
+                    .font(.system(size: AppFontSize.caption, design: .monospaced))
                     .foregroundStyle(.tertiary)
                     .lineLimit(1)
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 9)
+        .padding(.vertical, 6)
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(rowBackground)

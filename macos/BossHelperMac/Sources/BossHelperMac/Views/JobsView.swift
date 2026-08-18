@@ -43,21 +43,23 @@ struct JobsView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Status Tabs
-            TabView(selection: $statusFilter) {
-                ForEach(JobStatusFilter.allCases) { filter in
-                    jobsContent
-                        .tabItem { Text(filter.title) }
-                        .tag(filter)
+        GlassEffectContainer {
+            VStack(spacing: 0) {
+                // Status Tabs
+                TabView(selection: $statusFilter) {
+                    ForEach(JobStatusFilter.allCases) { filter in
+                        jobsContent
+                            .tabItem { Text(filter.title) }
+                            .tag(filter)
+                    }
                 }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Bottom Data Toolstrip
-            bottomDataToolbar
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
+                // Bottom Data Toolstrip
+                bottomDataToolbar
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         // Apple Native macOS Inspector Drawer
@@ -344,16 +346,6 @@ private struct JobInspectorView: View {
 
                 Spacer()
 
-                if let kw = job.matchedKeyword {
-                    Text("🎯 命中: 【\(kw)】")
-                        .font(.caption.bold())
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(Color.orange.opacity(0.22))
-                        .foregroundStyle(.red)
-                        .clipShape(Capsule())
-                }
-
                 Button(action: onClose) {
                     Image(systemName: "xmark.circle.fill")
                         .font(.title3)
@@ -370,7 +362,7 @@ private struct JobInspectorView: View {
             if let desc = job.postDescription, !desc.isEmpty {
                 ScrollView {
                     Text(highlightedJD(text: desc, keyword: job.matchedKeyword))
-                        .font(.system(size: 14))
+                        .font(.system(size: AppFontSize.body))
                         .lineSpacing(6)
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -398,7 +390,7 @@ private struct JobInspectorView: View {
         while let range = attr[searchRange].range(of: keyword, options: .caseInsensitive) {
             attr[range].backgroundColor = Color.orange.opacity(0.35)
             attr[range].foregroundColor = Color.red
-            attr[range].font = .system(size: 14, weight: .bold)
+            attr[range].font = .system(size: AppFontSize.body, weight: .bold)
             if range.upperBound >= attr.endIndex { break }
             searchRange = range.upperBound..<attr.endIndex
         }

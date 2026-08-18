@@ -40,6 +40,19 @@ enum AccentColorOption: String, CaseIterable, Identifiable {
     }
 }
 
+/// 全项目字号唯一事实来源：5 档文字体系 + 侧边栏例外。
+/// 新 UI 请优先复用这里的档位，避免重新引入散乱字号。
+enum AppFontSize {
+    static let display: CGFloat = 22      // 指标大数字（rounded bold）
+    static let title: CGFloat = 15        // 卡片标题 / 空态标题 / 状态标题
+    static let body: CGFloat = 13         // 正文 / 列表标题
+    static let callout: CGFloat = 12      // 次要信息
+    static let caption: CGFloat = 11      // 元数据 / 页脚 / 图表提示
+    static let mono: CGFloat = 12         // 日志正文（等宽）
+    static let sidebarTitle: CGFloat = 14 // 侧边栏标签（有意比正文大一号）
+    static let sidebarIcon: CGFloat = 15  // 侧边栏图标
+}
+
 enum AppTheme {
     static func accentColor(
         accent: String = "pink",

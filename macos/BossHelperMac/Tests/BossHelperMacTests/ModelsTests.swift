@@ -73,4 +73,12 @@ final class ModelsTests: XCTestCase {
             "无法连接本地数据服务，请点击重试"
         )
     }
+
+    func testMenuBarPercentText() {
+        XCTAssertEqual(MenuBarController.percentText(success: 35, limit: 100), "35%")
+        XCTAssertEqual(MenuBarController.percentText(success: 150, limit: 100), "100%")
+        XCTAssertEqual(MenuBarController.percentText(success: 0, limit: 100), "0%")
+        XCTAssertNil(MenuBarController.percentText(success: 10, limit: 0))
+        XCTAssertNil(MenuBarController.percentText(success: 10, limit: nil))
+    }
 }

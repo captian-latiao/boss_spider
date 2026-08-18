@@ -89,26 +89,24 @@ struct MainSplitView: View {
         .navigationTitle(activeTab.title)
         .navigationSplitViewStyle(.balanced)
         .toolbar {
-            if activeTab == .dashboard {
-                ToolbarItemGroup(placement: .automatic) {
-                    // Global Quick Action: Open BOSS Direct
-                    Button {
-                        if let url = URL(string: "https://www.zhipin.com") {
-                            NSWorkspace.shared.open(url)
-                        }
-                    } label: {
-                        Label("打开 BOSS 直聘", systemImage: "safari")
+            ToolbarItemGroup(placement: .automatic) {
+                // Global Quick Action: Open BOSS Direct
+                Button {
+                    if let url = URL(string: "https://www.zhipin.com") {
+                        NSWorkspace.shared.open(url)
                     }
-                    .help("在默认浏览器中打开 BOSS 直聘网页")
-
-                    // Global Refresh
-                    Button {
-                        Task { await appState.refresh() }
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                    .help("刷新数据状态")
+                } label: {
+                    Label("打开 BOSS 直聘", systemImage: "safari")
                 }
+                .help("在默认浏览器中打开 BOSS 直聘网页")
+
+                // Global Refresh
+                Button {
+                    Task { await appState.refresh() }
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .help("刷新数据状态")
             }
         }
     }
@@ -129,7 +127,7 @@ struct MainSidebarView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Main Tabs List (Theme Accent Selection & Full-Width Hit Test)
-            VStack(spacing: 3) {
+            VStack(spacing: 4) {
                 ForEach(mainTabs) { tab in
                     SidebarTabRow(
                         tab: tab,
@@ -176,12 +174,12 @@ private struct SidebarTabRow: View {
         Button(action: onSelect) {
             HStack(spacing: 10) {
                 Image(systemName: tab.systemImage)
-                    .font(.system(size: 13.5, weight: isSelected ? .bold : .medium))
+                    .font(.system(size: AppFontSize.sidebarIcon, weight: isSelected ? .bold : .medium))
                     .foregroundStyle(isSelected ? Color.white : Color.secondary)
                     .frame(width: 18)
 
                 Text(tab.title)
-                    .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
+                    .font(.system(size: AppFontSize.sidebarTitle, weight: isSelected ? .semibold : .medium))
                     .foregroundStyle(isSelected ? Color.white : Color.primary)
                     .lineLimit(1)
                     .fixedSize(horizontal: true, vertical: false)
@@ -189,7 +187,7 @@ private struct SidebarTabRow: View {
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, 10)
-            .padding(.vertical, 7)
+            .padding(.vertical, 9)
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
             .background(
