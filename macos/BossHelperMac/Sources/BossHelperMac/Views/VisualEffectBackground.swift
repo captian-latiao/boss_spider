@@ -25,6 +25,25 @@ struct VisualEffectBackground: NSViewRepresentable {
 /// A rounded native liquid-glass surface used for cards floating on the glass canvas.
 /// Applied as a modifier so the glass sits *behind* the card content and the
 /// text composites on top of the glass as native "glass content".
+/// Backward-compatible wrapper around the macOS 26 `GlassEffectContainer`.
+/// On macOS 26+ the native liquid-glass container is used; on older systems
+/// the content renders directly over the window's visual-effect background.
+struct AppGlassContainer<Content: View>: View {
+    private let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        if #available(macOS 26.0, *) {
+            GlassEffectContainer { content }
+        } else {
+            content
+        }
+    }
+}
+
 struct MaterialSurface: ViewModifier {
     var cornerRadius: CGFloat = 12
     var borderColor: Color = .clear
@@ -35,31 +54,40 @@ struct MaterialSurface: ViewModifier {
     @Environment(\.colorScheme) private var colorScheme
 
     func body(content: Content) -> some View {
-        content
-            // Native macOS 26 liquid glass — the same glass system as the sidebar.
-            .glassEffect(in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-            .overlay {
-                if tint != .clear {
-                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .fill(tint)
-                        .allowsHitTesting(false)
-                }
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        Group {
+            if #available(macOS 26.0, *) {
+                content
+                    // Native macOS 26 liquid glass — the same glass system as the sidebar.
+                    .glassEffect(in: shape)
+                    .clipShape(shape)
+            } else {
+                content
+                    .background(.ultraThinMaterial, in: shape)
+                    .clipShape(shape)
             }
-            .overlay {
-                if borderColor != .clear {
-                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .stroke(borderColor, lineWidth: borderWidth)
-                        .allowsHitTesting(false)
-                }
+        }
+        .overlay {
+            if tint != .clear {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .fill(tint)
+                    .allowsHitTesting(false)
             }
-            .shadow(
-                color: hasShadow
-                    ? Color.black.opacity(colorScheme == .dark ? 0.30 : 0.12)
-                    : .clear,
-                radius: hasShadow ? 10 : 0,
-                x: 0,
-                y: hasShadow ? 4 : 0
-            )
+        }
+        .overlay {
+            if borderColor != .clear {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(borderColor, lineWidth: borderWidth)
+                    .allowsHitTesting(false)
+            }
+        }
+        .shadow(
+            color: hasShadow
+                ? Color.black.opacity(colorScheme == .dark ? 0.30 : 0.12)
+                : .clear,
+            radius: hasShadow ? 10 : 0,
+            x: 0,
+            y: hasShadow ? 4 : 0
+        )
     }
 }

@@ -48,23 +48,26 @@ struct AuditView: View {
     }
 
     var body: some View {
-        GlassEffectContainer {
+        AppGlassContainer {
             VStack(spacing: 0) {
-                // Category Tabs
-                TabView(selection: $filter) {
+                // Category Filter (native segmented control)
+                Picker("日志筛选", selection: $filter) {
                     ForEach(LogFilter.allCases) { item in
-                        VStack(spacing: 0) {
-                            logActionBar
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 6)
-
-                            logContent
-                        }
-                        .tabItem { Text(item.title) }
-                        .tag(item)
+                        Text(item.title)
+                            .tag(item)
                     }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+
+                logActionBar
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 6)
+
+                logContent
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 // Footer Diagnostics Bar (8pt Standardized)
                 diagnosticsFooter

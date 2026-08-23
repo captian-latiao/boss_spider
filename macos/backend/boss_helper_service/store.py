@@ -104,23 +104,23 @@ class SQLiteStore:
         self.data_dir = Path(ensure_data_dir(data_dir))
         self.db_path = self.data_dir / "boss_helper.db"
         self._lock = threading.RLock()
+        self._conn = self._connect()
+        self._conn.execute("PRAGMA journal_mode=WAL")
+        self._conn.execute("PRAGMA foreign_keys=ON")
         self.init_schema()
 
     def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.db_path, timeout=15)
+        # All access is serialized by self._lock, so a single shared connection
+        # is safe to use from worker threads via check_same_thread=False.
+        conn = sqlite3.connect(self.db_path, timeout=15, check_same_thread=False)
         conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA foreign_keys=ON")
         return conn
 
     @contextmanager
     def _connection(self):
-        conn = self._connect()
-        try:
-            with conn:
-                yield conn
-        finally:
-            conn.close()
+        # Reuse the shared connection; callers must hold self._lock.
+        with self._conn:
+            yield self._conn
 
     def init_schema(self) -> None:
         jobs_columns = ", ".join(

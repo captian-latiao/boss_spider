@@ -37,6 +37,8 @@ final class BackendProcessManager: ObservableObject {
             return
         }
 
+        reclaimUnhealthyPortOwnerIfNeeded()
+
         start()
     }
 
@@ -71,7 +73,6 @@ final class BackendProcessManager: ObservableObject {
             isRunning = true
             ownsProcess = true
             lastError = nil
-            writeBackendPID(newProcess.processIdentifier)
             appendLog("后端进程已创建，PID \(newProcess.processIdentifier)，等待健康检查")
         } catch {
             lastError = error.localizedDescription
@@ -94,10 +95,13 @@ final class BackendProcessManager: ObservableObject {
 
     func stop() {
         appendLog("正在停止后端服务…")
-        process?.terminate()
+        if let pid = process?.processIdentifier {
+            terminateProcessTree(parentPID: pid, grace: 3.0)
+        }
         process = nil
         isRunning = false
         ownsProcess = false
+        try? FileManager.default.removeItem(at: backendPIDFileURL)
         appendLog("已发送停止指令")
     }
 
@@ -131,20 +135,98 @@ final class BackendProcessManager: ObservableObject {
         return isProcessAlive(pid) ? pid : nil
     }
 
-    private func isProcessAlive(_ pid: pid_t) -> Bool {
-        kill(pid, 0) == 0 || errno == EPERM
+    /// If port 5005 is occupied by a process that does not answer /health,
+    /// terminate it so a fresh backend can bind the port.
+    private func reclaimUnhealthyPortOwnerIfNeeded() {
+        guard let pid = listeningPIDOnPort5005(),
+              pid != process?.processIdentifier else { return }
+        appendLog("端口 5005 被无响应进程 PID \(pid) 占用，正在回收")
+        terminate(pid: pid, grace: 1.0)
+        try? FileManager.default.removeItem(at: backendPIDFileURL)
     }
 
-    private func writeBackendPID(_ pid: pid_t) {
-        try? FileManager.default.createDirectory(
-            at: dataDirectory,
-            withIntermediateDirectories: true
-        )
-        try? "\(pid)".write(
-            to: backendPIDFileURL,
-            atomically: true,
-            encoding: .utf8
-        )
+    private func listeningPIDOnPort5005() -> pid_t? {
+        guard let output = runCapture(
+            executable: "/usr/sbin/lsof",
+            arguments: ["-tiTCP:5005", "-sTCP:LISTEN"]
+        ) else { return nil }
+        return Self.firstPID(fromOutput: output)
+    }
+
+    private func childPIDs(of pid: pid_t) -> [pid_t] {
+        guard let output = runCapture(
+            executable: "/usr/bin/pgrep",
+            arguments: ["-P", "\(pid)"]
+        ) else { return [] }
+        return output
+            .split(whereSeparator: \.isNewline)
+            .compactMap { pid_t(String($0)) }
+    }
+
+    private func runCapture(executable: String, arguments: [String]) -> String? {
+        let helper = Process()
+        helper.executableURL = URL(fileURLWithPath: executable)
+        helper.arguments = arguments
+        let pipe = Pipe()
+        helper.standardOutput = pipe
+        helper.standardError = Pipe()
+        do {
+            try helper.run()
+            helper.waitUntilExit()
+        } catch {
+            return nil
+        }
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        return String(data: data, encoding: .utf8)
+    }
+
+    private func terminateProcessTree(parentPID: pid_t, grace: TimeInterval) {
+        var pids = [parentPID]
+        var queue = [parentPID]
+        while !queue.isEmpty {
+            let current = queue.removeFirst()
+            let children = childPIDs(of: current).filter { !pids.contains($0) }
+            pids.append(contentsOf: children)
+            queue.append(contentsOf: children)
+        }
+
+        for pid in pids {
+            kill(pid, SIGTERM)
+        }
+
+        let deadline = Date().addingTimeInterval(grace)
+        while Date() < deadline {
+            if pids.allSatisfy({ !isProcessAlive($0) }) { return }
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+
+        for pid in pids where isProcessAlive(pid) {
+            kill(pid, SIGKILL)
+        }
+    }
+
+    private func terminate(pid: pid_t, grace: TimeInterval) {
+        kill(pid, SIGTERM)
+        let deadline = Date().addingTimeInterval(grace)
+        while Date() < deadline {
+            if !isProcessAlive(pid) { return }
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+        if isProcessAlive(pid) {
+            kill(pid, SIGKILL)
+        }
+    }
+
+    /// Returns the first PID found in command output (lsof/pgrep format).
+    nonisolated static func firstPID(fromOutput output: String) -> pid_t? {
+        output
+            .split(whereSeparator: \.isNewline)
+            .first
+            .flatMap { pid_t(String($0).trimmingCharacters(in: .whitespacesAndNewlines)) }
+    }
+
+    private func isProcessAlive(_ pid: pid_t) -> Bool {
+        kill(pid, 0) == 0 || errno == EPERM
     }
 
     func appendLog(
@@ -177,40 +259,38 @@ final class BackendProcessManager: ObservableObject {
 
     private func backendCommand() throws -> (executable: URL, arguments: [String]) {
         let dataArgument = ["--data-dir", dataDirectory.path]
+        let parentArgument = ["--parent-pid", "\(ProcessInfo.processInfo.processIdentifier)"]
 
+        let base: (executable: URL, arguments: [String])
         if let override = ProcessInfo.processInfo.environment["BOSS_HELPER_BACKEND_PATH"],
            !override.isEmpty {
             let overrideURL = URL(fileURLWithPath: override)
             if overrideURL.pathExtension == "py" {
-                return (
+                base = (
                     URL(fileURLWithPath: "/usr/bin/env"),
-                    ["python3", overrideURL.path] + dataArgument
+                    ["python3", overrideURL.path]
                 )
+            } else {
+                base = (overrideURL, [])
             }
-            return (overrideURL, dataArgument)
-        }
-
-        if let bundled = Bundle.main.url(forAuxiliaryExecutable: "boss-helper-backend") {
-            return (bundled, dataArgument)
-        }
-
-        if let sourceScript = sourceBackendScript() {
+        } else if let bundled = Bundle.main.url(forAuxiliaryExecutable: "boss-helper-backend") {
+            base = (bundled, [])
+        } else if let sourceScript = sourceBackendScript() {
             let python = developmentPythonExecutable()
                 ?? URL(fileURLWithPath: "/usr/bin/python3")
-            return (
-                python,
-                [sourceScript.path] + dataArgument
+            base = (python, [sourceScript.path])
+        } else {
+            let currentDirectory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+            let scriptURL = currentDirectory
+                .appendingPathComponent("../backend/run.py")
+                .standardizedFileURL
+            base = (
+                URL(fileURLWithPath: "/usr/bin/env"),
+                ["python3", scriptURL.path]
             )
         }
 
-        let currentDirectory = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-        let scriptURL = currentDirectory
-            .appendingPathComponent("../backend/run.py")
-            .standardizedFileURL
-        return (
-            URL(fileURLWithPath: "/usr/bin/env"),
-            ["python3", scriptURL.path] + dataArgument
-        )
+        return (base.executable, base.arguments + dataArgument + parentArgument)
     }
 
     private func sourceBackendScript() -> URL? {
@@ -242,10 +322,13 @@ final class BackendProcessManager: ObservableObject {
 
     private func consume(pipe: Pipe, prefix: String) {
         pipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
-            let data = handle.availableData
+            let data = (try? handle.read(upToCount: 64 * 1024)) ?? Data()
             guard !data.isEmpty else { return }
             if let text = String(data: data, encoding: .utf8) {
-                let rawText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                var rawText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                if rawText.count > 8000 {
+                    rawText = String(rawText.prefix(8000)) + "…"
+                }
                 let entry = Self.makeEntry(rawText: rawText, prefix: prefix)
                 guard entry.category != .polling else { return }
                 print("backend-\(entry.text)")

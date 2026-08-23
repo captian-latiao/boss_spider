@@ -43,17 +43,22 @@ struct JobsView: View {
     }
 
     var body: some View {
-        GlassEffectContainer {
+        AppGlassContainer {
             VStack(spacing: 0) {
-                // Status Tabs
-                TabView(selection: $statusFilter) {
+                // Status Filter (native segmented control)
+                Picker("状态筛选", selection: $statusFilter) {
                     ForEach(JobStatusFilter.allCases) { filter in
-                        jobsContent
-                            .tabItem { Text(filter.title) }
+                        Text(filter.title)
                             .tag(filter)
                     }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+
+                jobsContent
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 // Bottom Data Toolstrip
                 bottomDataToolbar

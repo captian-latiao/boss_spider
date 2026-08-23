@@ -20,6 +20,7 @@ import { ElImage, ElLink, ElSpace } from 'element-plus'
             <ElLink href="https://github.com/engvuchen" target="_blank"> engvuchen </ElLink>
           </div>
         </div>
+        <div data-help="当前版本">当前版本: {{ __APP_VERSION__ }}</div>
       </div>
     </div>
     <div data-help="记得来个Star或者好评吧" style="margin-top: 10px">

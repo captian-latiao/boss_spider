@@ -50,6 +50,14 @@ pnpm run build
 
 在浏览器扩展管理页加载该目录即可。
 
+打包成单个 zip 安装包（Chrome）：
+
+```bash
+node node_modules/wxt/bin/wxt.mjs zip -b chrome
+```
+
+产物位于 `.output/boss-helper-<版本>-chrome.zip`。对方安装方式：解压 zip → 打开 `chrome://extensions` → 开启“开发者模式” → “加载已解压的扩展程序”选择解压目录。
+
 ### 本地后端服务
 
 ```bash

@@ -12,7 +12,7 @@ struct SettingsView: View {
     @State private var hasSavedLimit = false
 
     var body: some View {
-        GlassEffectContainer {
+        AppGlassContainer {
             Form {
                 // Section 1: Delivery Strategy
                 Section("投递策略与安全") {
@@ -159,7 +159,7 @@ private struct AboutHeroooPane: View {
     private var versionText: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.1.0"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
-        return "版本 \(version) (Build \(build))"
+        return "版本 \(version).\(build)"
     }
 
     var body: some View {

@@ -3,6 +3,7 @@ import { ElButton, ElCheckbox, ElCheckboxGroup, ElIcon, ElPopover, ElTag } from 
 import type { HeaderCellRendererParams } from 'element-plus/es/components/table-v2/src/types.mjs'
 import { computed, reactive, ref } from 'vue'
 import axios from 'axios'
+import { counter } from '@/message'
 import { logger } from '@/utils/logger'
 
 
@@ -64,6 +65,53 @@ interface log {
 const dialogData = reactive<{ show: boolean; data?: log }>({ show: false })
 
 const data = ref<log[]>([])
+
+const SYNC_QUEUE_KEY = '__bh_sync_queue__'
+const SYNC_QUEUE_LIMIT = 500
+
+async function readSyncQueue(): Promise<Record<string, unknown>[]> {
+  const queue = await counter.storageGet<Record<string, unknown>[]>(SYNC_QUEUE_KEY, [])
+  return Array.isArray(queue) ? queue : []
+}
+
+async function writeSyncQueue(queue: Record<string, unknown>[]) {
+  await counter.storageSet(SYNC_QUEUE_KEY, queue.slice(-SYNC_QUEUE_LIMIT))
+}
+
+async function drainSyncQueue() {
+  let queue = await readSyncQueue()
+  while (queue.length > 0) {
+    const item = queue[0]
+    try {
+      await axios.post('http://localhost:5005/api/save_job', item)
+      queue = queue.slice(1)
+      await writeSyncQueue(queue)
+    } catch {
+      break
+    }
+  }
+}
+
+async function syncJob(payload: Record<string, unknown>, row: log) {
+  try {
+    await axios.post('http://localhost:5005/api/save_job', payload)
+    row.message = appendSyncStatus(row.message, 'success')
+    logger.debug('数据同步成功', payload)
+    void drainSyncQueue()
+  } catch (error) {
+    row.message = appendSyncStatus(row.message, 'failed')
+    logger.warn('数据同步失败，已加入重试队列', (error as Error)?.message)
+    const queue = await readSyncQueue()
+    queue.push(payload)
+    await writeSyncQueue(queue)
+  }
+}
+
+function appendSyncStatus(message: string | undefined, result: 'success' | 'failed'): string {
+  const base = (message ?? '').replace(/ · 数据同步.*$/, '')
+  const suffix = result === 'success' ? '数据同步成功' : '同步失败（已入队，将自动重试）'
+  return base ? `${base} · ${suffix}` : suffix
+}
 
 const stateNames: [logState, string][] = [
   ['info', '消息'],
@@ -183,22 +231,26 @@ const columns: Column<log>[] = [
 ]
 
 export function useLog() {
+  // 页面加载时补推上次失败未同步的队列
+  void drainSyncQueue()
+
   const add = (job: MyJobListData, err: logErr, logdata?: logData, msg?: string) => {
     const state = !err ? 'success' : err.state
     const message = msg ?? (err ? err.message : undefined)
     const state_name = err?.name ?? '投递成功'
 
-    data.value.push({
+    const row: log = {
       job,
       title: job.jobName,
       state,
       state_name,
-      message,
+      message: message ? `${message} · 数据同步中…` : '数据同步中…',
       data: logdata,
-    })
+    }
+    data.value.push(row)
 
     // 自动异步推送数据给本地 Python 数据库接收服务
-    const payload = {
+    const payload: Record<string, unknown> = {
       encryptJobId: job.encryptJobId,
       jobName: job.jobName,
       brandName: job.brandName,
@@ -226,13 +278,7 @@ export function useLog() {
       sub_category: (document.querySelector('.search-input-box input') as HTMLInputElement)?.value || '产品经理',
     }
 
-    axios.post('http://localhost:5005/api/save_job', payload)
-      .then(res => {
-        logger.debug('数据同步成功', res.data)
-      })
-      .catch(error => {
-        logger.warn('数据同步失败，本地 Flask 服务可能未运行', error.message)
-      })
+    void syncJob(payload, row)
   }
   const info = (title: string, message: string) => {
     data.value.push({

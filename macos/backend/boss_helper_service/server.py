@@ -9,11 +9,14 @@ from . import __version__
 from .crawler import CrawlerManager
 from .delivery import record_delivery
 from .importer import import_paths
+from .logging_utils import log
 from .store import SQLiteStore, serialize_json
 
 
 class BossHelperHandler(BaseHTTPRequestHandler):
     server_version = "BossHelperBackend/0.1"
+    protocol_version = "HTTP/1.0"
+    timeout = 10
     store: SQLiteStore
     crawler: CrawlerManager
     shutdown_callback: Any = None
@@ -105,12 +108,11 @@ class BossHelperHandler(BaseHTTPRequestHandler):
             elif path == "/api/save_job":
                 payload = self._read_json()
                 job = record_delivery(self.store, payload)
-                print(
+                log(
                     f"[delivery] job_id={job['job_id']} "
                     f"status={job['deliver_status']} "
                     f"company={job.get('job_company', '')} "
-                    f"job_name={job.get('job_name', '')}",
-                    flush=True,
+                    f"job_name={job.get('job_name', '')}"
                 )
                 self._send_json(
                     200,
@@ -142,10 +144,9 @@ class BossHelperHandler(BaseHTTPRequestHandler):
                     payload,
                     config_type=str(config_type),
                 )
-                print(
+                log(
                     f"[config] config_type={result['config_type']} "
-                    f"delivery_limit={result['delivery_limit']}",
-                    flush=True,
+                    f"delivery_limit={result['delivery_limit']}"
                 )
                 self._send_json(200, {"code": 200, **result})
             elif path == "/api/shutdown":
@@ -170,10 +171,7 @@ class BossHelperHandler(BaseHTTPRequestHandler):
             )
 
     def log_message(self, format: str, *args: Any) -> None:
-        print(
-            f"[backend] {self.address_string()} - {format % args}",
-            flush=True,
-        )
+        log(f"[backend] {self.address_string()} - {format % args}")
 
 
 def create_server(

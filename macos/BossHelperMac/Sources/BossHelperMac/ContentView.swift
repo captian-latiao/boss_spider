@@ -85,6 +85,7 @@ struct MainSplitView: View {
                 .toolbar(removing: .sidebarToggle)
         } detail: {
             MainDetailView(tab: activeTab)
+                .id(activeTab)
         }
         .navigationTitle(activeTab.title)
         .navigationSplitViewStyle(.balanced)

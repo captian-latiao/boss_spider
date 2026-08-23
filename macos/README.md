@@ -55,19 +55,22 @@ macos/build/BossHelperMac.app
 
 这个 App 不再依赖目标机器的 Python 环境或项目源码，只需对方安装对应的浏览器插件并在 BOSS 页面登录。
 
-## 分发到个人 Mac
-
-当前版本未做 Apple 签名/公证，发送给其他 Mac 时建议：
+## 打包 DMG（个人分发）
 
 ```bash
-cd macos/build
-ditto -c -k --keepParent BossHelperMac.app BossHelperMac.zip
+./scripts/build_dmg.sh
 ```
 
-对方解压后首次打开时，右键 `BossHelperMac.app` → `打开`。若仍提示无法验证，可在对方机器执行：
+产物：`macos/build/BossHelper-<版本>-arm64.dmg`（版本号自动读取自 App 的 Info.plist）。
+
+当前版本未做 Apple 签名/公证（个人分发）。对方拿到 DMG 后：
+
+1. 需要 Apple Silicon（M 系列）Mac，macOS 14 或更高；
+2. 双击 DMG，把 `BossHelper.app` 拖入“应用程序”；
+3. 首次打开时右键 `BossHelper.app` → `打开`。若仍提示无法验证，在对方机器执行：
 
 ```bash
-xattr -cr /path/to/BossHelperMac.app
+xattr -cr /Applications/BossHelper.app
 ```
 
 > 仅供个人学习与低频求职辅助使用，请遵守目标网站规则并保留限流保护。

@@ -36,7 +36,7 @@ struct DashboardView: View {
     }
 
     var body: some View {
-        GlassEffectContainer {
+        AppGlassContainer {
             VStack(spacing: 16) {
                 // 1+2. Unified 4-column grid: service(1) + efficiency(3),
                 // then the four metric cards (1 each)

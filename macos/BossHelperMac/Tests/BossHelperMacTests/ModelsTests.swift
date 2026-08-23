@@ -81,4 +81,11 @@ final class ModelsTests: XCTestCase {
         XCTAssertNil(MenuBarController.percentText(success: 10, limit: 0))
         XCTAssertNil(MenuBarController.percentText(success: 10, limit: nil))
     }
+
+    func testBackendFirstPIDParsing() {
+        XCTAssertEqual(BackendProcessManager.firstPID(fromOutput: "17037\n18924\n"), 17037)
+        XCTAssertEqual(BackendProcessManager.firstPID(fromOutput: "  12345  \n"), 12345)
+        XCTAssertNil(BackendProcessManager.firstPID(fromOutput: ""))
+        XCTAssertNil(BackendProcessManager.firstPID(fromOutput: "abc\n"))
+    }
 }
