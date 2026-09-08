@@ -59,11 +59,13 @@ struct JobsView: View {
 
                 jobsContent
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                // Bottom Data Toolstrip
-                bottomDataToolbar
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
+                    .clipped()
+                    .safeAreaInset(edge: .bottom, spacing: 0) {
+                        // Bottom Data Toolstrip (pinned & layered above the list)
+                        bottomDataToolbar
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                    }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -125,6 +127,7 @@ struct JobsView: View {
             .padding(16)
         }
         .scrollIndicators(.hidden)
+        .clipped()
     }
 
     // MARK: - Empty State
