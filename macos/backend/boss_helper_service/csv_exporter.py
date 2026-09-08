@@ -64,14 +64,20 @@ class CsvExporter:
         with self._lock:
             rows: dict[str, dict[str, str]] = {}
             if path.exists():
-                with path.open("r", encoding="utf-8-sig", newline="") as handle:
-                    for row in csv.DictReader(handle):
-                        existing_id = str(row.get("job_id") or "").strip()
-                        if existing_id:
-                            rows[existing_id] = {
-                                field: str(row.get(field, "") or "")
-                                for field in CSV_FIELDNAMES
-                            }
+                for encoding in ("utf-8-sig", "gbk", "latin-1"):
+                    try:
+                        with path.open("r", encoding=encoding, newline="") as handle:
+                            for row in csv.DictReader(handle):
+                                existing_id = str(row.get("job_id") or "").strip()
+                                if existing_id:
+                                    rows[existing_id] = {
+                                        field: str(row.get(field, "") or "")
+                                        for field in CSV_FIELDNAMES
+                                    }
+                        break
+                    except UnicodeDecodeError:
+                        rows = {}
+                        continue
 
             rows[job_id] = new_row
 

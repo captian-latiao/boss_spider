@@ -2,9 +2,9 @@ import type { Column } from 'element-plus'
 import { ElButton, ElCheckbox, ElCheckboxGroup, ElIcon, ElPopover, ElTag } from 'element-plus'
 import type { HeaderCellRendererParams } from 'element-plus/es/components/table-v2/src/types.mjs'
 import { computed, reactive, ref } from 'vue'
-import axios from 'axios'
 import { counter } from '@/message'
 import { logger } from '@/utils/logger'
+import { request } from '@/utils/request'
 
 
 import type {
@@ -68,6 +68,18 @@ const data = ref<log[]>([])
 
 const SYNC_QUEUE_KEY = '__bh_sync_queue__'
 const SYNC_QUEUE_LIMIT = 500
+const SAVE_JOB_URL = 'http://127.0.0.1:5005/api/save_job'
+
+async function postSaveJob(payload: Record<string, unknown>) {
+  return request.post({
+    url: SAVE_JOB_URL,
+    data: JSON.stringify(payload),
+    headers: { 'Content-Type': 'application/json' },
+    responseType: 'json',
+    timeout: 15,
+    isBackground: true,
+  })
+}
 
 async function readSyncQueue(): Promise<Record<string, unknown>[]> {
   const queue = await counter.storageGet<Record<string, unknown>[]>(SYNC_QUEUE_KEY, [])
@@ -83,7 +95,7 @@ async function drainSyncQueue() {
   while (queue.length > 0) {
     const item = queue[0]
     try {
-      await axios.post('http://localhost:5005/api/save_job', item)
+      await postSaveJob(item)
       queue = queue.slice(1)
       await writeSyncQueue(queue)
     } catch {
@@ -94,7 +106,7 @@ async function drainSyncQueue() {
 
 async function syncJob(payload: Record<string, unknown>, row: log) {
   try {
-    await axios.post('http://localhost:5005/api/save_job', payload)
+    await postSaveJob(payload)
     row.message = appendSyncStatus(row.message, 'success')
     logger.debug('数据同步成功', payload)
     void drainSyncQueue()

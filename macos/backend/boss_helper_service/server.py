@@ -7,7 +7,7 @@ from urllib.parse import parse_qs, urlparse
 
 from . import __version__
 from .crawler import CrawlerManager
-from .delivery import record_delivery
+from .delivery import export_job_background, record_delivery
 from .importer import import_paths
 from .logging_utils import log
 from .store import SQLiteStore, serialize_json
@@ -122,6 +122,11 @@ class BossHelperHandler(BaseHTTPRequestHandler):
                         "job_id": job["job_id"],
                     },
                 )
+                threading.Thread(
+                    target=export_job_background,
+                    args=(job,),
+                    daemon=True,
+                ).start()
             elif path == "/api/crawl/start":
                 self._send_json(200, self.crawler.start())
             elif path == "/api/crawl/stop":

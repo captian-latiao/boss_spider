@@ -46,9 +46,9 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(row["source"], "delivery")
 
     def test_today_metrics_classify_statuses(self) -> None:
-        for status in ["success", "danger", "warning", "success"]:
+        for index, status in enumerate(["success", "danger", "warning", "success"]):
             self.store.insert_delivery_event(
-                job_id=f"job-{status}",
+                job_id=f"job-{status}-{index}",
                 deliver_status=status,
                 filter_reason="test",
                 raw_json="{}",
@@ -60,6 +60,21 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(metrics["danger"], 1)
         self.assertEqual(metrics["warning"], 1)
         self.assertIsNone(metrics["delivery_limit"])
+
+    def test_insert_delivery_event_dedupes_retries(self) -> None:
+        self.store.insert_delivery_event(
+            job_id="job-dup",
+            deliver_status="success",
+            filter_reason="投递成功",
+        )
+        # 重试队列重推的同一事件（30 分钟内相同 job/状态/原因）应被跳过
+        self.store.insert_delivery_event(
+            job_id="job-dup",
+            deliver_status="success",
+            filter_reason="投递成功",
+        )
+        metrics = self.store.get_today_metrics()
+        self.assertEqual(metrics["total"], 1)
 
     def test_speed_stats_single_event_all_zero(self) -> None:
         self.store.insert_delivery_event(
@@ -73,6 +88,7 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(metrics["pause_count"], 0)
         self.assertEqual(metrics["pause_seconds"], 0)
         self.assertEqual(metrics["speed_per_hour"], 0)
+        self.assertEqual(metrics["success_per_hour"], 0)
 
     def test_speed_stats_within_threshold(self) -> None:
         self.store.insert_delivery_event(
@@ -109,6 +125,7 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(metrics["pause_count"], 1)
         self.assertEqual(metrics["pause_seconds"], 600)
         self.assertEqual(metrics["speed_per_hour"], 0)
+        self.assertEqual(metrics["success_per_hour"], 0)
 
     def test_speed_stats_mixed_gaps(self) -> None:
         for time in [
@@ -129,12 +146,35 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(metrics["pause_seconds"], 1020)
         self.assertAlmostEqual(metrics["speed_per_hour"], 48.0)
 
+    def test_speed_stats_mixed_statuses_uses_same_active_time(self) -> None:
+        events = [
+            ("job-1", "success", "2026-08-19T09:00:00"),
+            ("job-2", "warning", "2026-08-19T09:03:00"),
+            ("job-3", "success", "2026-08-19T09:06:00"),
+            ("job-4", "danger", "2026-08-19T09:09:00"),
+        ]
+        for job_id, status, time in events:
+            self.store.insert_delivery_event(
+                job_id=job_id,
+                deliver_status=status,
+                event_time=time,
+            )
+        metrics = self.store.get_today_metrics(today="2026-08-19")
+        self.assertEqual(metrics["total"], 4)
+        self.assertEqual(metrics["success"], 2)
+        self.assertEqual(metrics["active_seconds"], 540)
+        self.assertEqual(metrics["pause_count"], 0)
+        # 总速度按全部事件计算，成功速度只按成功事件计算，分母相同
+        self.assertAlmostEqual(metrics["speed_per_hour"], 26.67, places=2)
+        self.assertAlmostEqual(metrics["success_per_hour"], 13.33, places=2)
+
     def test_compute_speed_stats_unparseable_ignored(self) -> None:
         stats = compute_speed_stats(
             ["not-a-date", "2026-08-19T09:00:00", "2026-08-19T09:02:00"]
         )
         self.assertEqual(stats["active_seconds"], 120)
         self.assertEqual(stats["pause_count"], 0)
+        self.assertEqual(stats["success_per_hour"], 0)
 
     def test_daily_speed_series_fills_zero_days(self) -> None:
         now = datetime.now()
@@ -164,10 +204,12 @@ class StoreTests(unittest.TestCase):
         day_a_item = next(item for item in series if item["date"] == day_a)
         self.assertEqual(day_a_item["total"], 2)
         self.assertEqual(day_a_item["active_seconds"], 120)
+        self.assertAlmostEqual(day_a_item["success_per_hour"], 60.0)
 
         today_item = series[-1]
         self.assertEqual(today_item["total"], 1)
         self.assertEqual(today_item["active_seconds"], 0)
+        self.assertEqual(today_item["success_per_hour"], 0)
 
     def test_crawl_status_and_log_tail(self) -> None:
         run_id = self.store.create_crawl_run()

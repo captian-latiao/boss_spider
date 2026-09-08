@@ -2,7 +2,6 @@ import { reactiveComputed, watchThrottled } from '@vueuse/core'
 import { ElMessage } from 'element-plus'
 import { defineStore } from 'pinia'
 import { reactive, ref, toRaw } from 'vue'
-import axios from 'axios'
 
 import { counter } from '@/message'
 import { useUser } from '@/stores/user'
@@ -10,6 +9,7 @@ import type { ConfigLevel, FormData } from '@/types/formData'
 import deepmerge, { jsonClone } from '@/utils/deepmerge'
 import { exportJson, importJson } from '@/utils/jsonImportExport'
 import { logger } from '@/utils/logger'
+import { request } from '@/utils/request'
 
 import { defaultFormData } from './info'
 
@@ -121,7 +121,14 @@ export const useConf = defineStore('conf', () => {
     exportJson(data, filename)
 
     try {
-      await axios.post('http://localhost:5005/api/save_config', data)
+      await request.post({
+        url: 'http://127.0.0.1:5005/api/save_config',
+        data: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+        responseType: 'json',
+        timeout: 15,
+        isBackground: true,
+      })
       ElMessage.success('配置已同步到 Mac 应用')
     } catch {
       ElMessage.warning('已导出文件，未同步到 Mac 应用')

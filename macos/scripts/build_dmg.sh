@@ -21,8 +21,8 @@ mkdir -p "$STAGING_DIR"
 cp -R "$APP_DIR" "$STAGING_DIR/"
 ln -s /Applications "$STAGING_DIR/Applications"
 
-cat > "$STAGING_DIR/安装说明.txt" <<'EOF'
-BossHelper 1.0.0 安装说明
+cat > "$STAGING_DIR/安装说明.txt" <<EOF
+BossHelper ${VERSION} 安装说明
 
 系统要求：
 - Apple Silicon（M 系列）Mac

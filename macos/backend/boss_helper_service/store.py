@@ -50,20 +50,36 @@ def _now() -> str:
     return datetime.now().isoformat(timespec="seconds")
 
 
+def _now_minus(minutes: int) -> str:
+    return (datetime.now() - timedelta(minutes=minutes)).isoformat(timespec="seconds")
+
+
 PAUSE_THRESHOLD_SECONDS = 300
 
 
-def compute_speed_stats(event_times: Iterable[str]) -> dict[str, Any]:
+def compute_speed_stats(
+    event_times: Iterable[str],
+    success_times: Iterable[str] | None = None,
+) -> dict[str, Any]:
     """Pause-aware delivery speed stats from ISO event timestamps.
 
     Gaps between consecutive events that exceed PAUSE_THRESHOLD_SECONDS are
     treated as pauses: the whole gap is excluded from active time. Speed is
-    total deliveries divided by active time in hours.
+    total deliveries divided by active time in hours. When success_times is
+    provided, success_per_hour is the successful-delivery count divided by
+    the same active time.
     """
     parsed: list[datetime] = []
     for raw in event_times:
         try:
             parsed.append(datetime.fromisoformat(raw))
+        except ValueError:
+            continue
+
+    parsed_success: list[datetime] = []
+    for raw in success_times or ():
+        try:
+            parsed_success.append(datetime.fromisoformat(raw))
         except ValueError:
             continue
 
@@ -73,6 +89,7 @@ def compute_speed_stats(event_times: Iterable[str]) -> dict[str, Any]:
             "pause_count": 0,
             "pause_seconds": 0,
             "speed_per_hour": 0,
+            "success_per_hour": 0,
         }
 
     parsed.sort()
@@ -88,14 +105,18 @@ def compute_speed_stats(event_times: Iterable[str]) -> dict[str, Any]:
             active_seconds += gap
 
     speed_per_hour = 0
+    success_per_hour = 0
     if active_seconds > 0:
-        speed_per_hour = len(parsed) / (active_seconds / 3600)
+        active_hours = active_seconds / 3600
+        speed_per_hour = len(parsed) / active_hours
+        success_per_hour = len(parsed_success) / active_hours
 
     return {
         "active_seconds": active_seconds,
         "pause_count": pause_count,
         "pause_seconds": pause_seconds,
         "speed_per_hour": round(speed_per_hour, 2),
+        "success_per_hour": round(success_per_hour, 2),
     }
 
 
@@ -242,6 +263,23 @@ class SQLiteStore:
         event_time: str | None = None,
     ) -> None:
         with self._lock, self._connection() as conn:
+            status = deliver_status or "pending"
+            reason = filter_reason or ""
+            detail = filter_detail or ""
+            ts = event_time or _now()
+            # 重试队列可能重推同一事件：30 分钟内相同 job/状态/原因视为重复，跳过
+            duplicate = conn.execute(
+                """
+                SELECT 1 FROM delivery_events
+                WHERE job_id = ? AND deliver_status = ?
+                  AND filter_reason = ? AND filter_detail = ?
+                  AND event_time >= ?
+                LIMIT 1
+                """,
+                (job_id, status, reason, detail, _now_minus(30)),
+            ).fetchone()
+            if duplicate:
+                return
             conn.execute(
                 """
                 INSERT INTO delivery_events (
@@ -251,10 +289,10 @@ class SQLiteStore:
                 """,
                 (
                     job_id,
-                    deliver_status or "pending",
-                    filter_reason or "",
-                    filter_detail or "",
-                    event_time or _now(),
+                    status,
+                    reason,
+                    detail,
+                    ts,
                     raw_json or "",
                 ),
             )
@@ -283,7 +321,7 @@ class SQLiteStore:
             ).fetchone()
 
             event_rows = conn.execute(
-                "SELECT event_time FROM delivery_events "
+                "SELECT event_time, deliver_status FROM delivery_events "
                 "WHERE substr(event_time, 1, 10) = ?",
                 (date_key,),
             ).fetchall()
@@ -299,9 +337,13 @@ class SQLiteStore:
             except ValueError:
                 elapsed_seconds = 0
 
-        speed_stats = compute_speed_stats(
-            event_row["event_time"] for event_row in event_rows
-        )
+        all_times = [row["event_time"] for row in event_rows]
+        success_times = [
+            row["event_time"]
+            for row in event_rows
+            if row["deliver_status"] == "success"
+        ]
+        speed_stats = compute_speed_stats(all_times, success_times)
 
         return {
             "date": date_key,
@@ -326,7 +368,7 @@ class SQLiteStore:
         with self._lock, self._connection() as conn:
             rows = conn.execute(
                 """
-                SELECT event_time FROM delivery_events
+                SELECT event_time, deliver_status FROM delivery_events
                 WHERE event_time >= ?
                 ORDER BY event_time
                 """,
@@ -334,17 +376,25 @@ class SQLiteStore:
             ).fetchall()
 
         by_date: dict[str, list[str]] = {}
+        success_by_date: dict[str, list[str]] = {}
         for row in rows:
             date_key = row["event_time"][:10]
             if date_key >= start:
                 by_date.setdefault(date_key, []).append(row["event_time"])
+                if row["deliver_status"] == "success":
+                    success_by_date.setdefault(date_key, []).append(
+                        row["event_time"]
+                    )
 
         result: list[dict[str, Any]] = []
         for offset in range(days):
             date_key = (now - timedelta(days=days - 1 - offset)).strftime(
                 "%Y-%m-%d"
             )
-            stats = compute_speed_stats(by_date.get(date_key, []))
+            stats = compute_speed_stats(
+                by_date.get(date_key, []),
+                success_by_date.get(date_key, []),
+            )
             result.append(
                 {
                     "date": date_key,
@@ -352,6 +402,7 @@ class SQLiteStore:
                     "active_seconds": stats["active_seconds"],
                     "pause_count": stats["pause_count"],
                     "speed_per_hour": stats["speed_per_hour"],
+                    "success_per_hour": stats["success_per_hour"],
                 }
             )
         return result

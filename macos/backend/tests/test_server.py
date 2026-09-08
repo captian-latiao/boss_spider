@@ -3,6 +3,7 @@ import json
 import os
 import tempfile
 import threading
+import time
 import unittest
 import urllib.request
 from datetime import date
@@ -76,6 +77,7 @@ class ServerTests(unittest.TestCase):
         self.assertIn("active_seconds", metrics)
         self.assertIn("pause_count", metrics)
         self.assertIn("speed_per_hour", metrics)
+        self.assertIn("success_per_hour", metrics)
 
         status, series = self.request_json("GET", "/api/metrics/speed?days=3")
         self.assertEqual(status, 200)
@@ -86,6 +88,7 @@ class ServerTests(unittest.TestCase):
         self.assertIn("active_seconds", series[0])
         self.assertIn("pause_count", series[0])
         self.assertIn("speed_per_hour", series[0])
+        self.assertIn("success_per_hour", series[0])
 
         status, config = self.request_json(
             "POST",
@@ -106,6 +109,11 @@ class ServerTests(unittest.TestCase):
             / today.strftime("%Y-%m")
             / f"week_{today.isocalendar()[1]:02d}.csv"
         )
+        # CSV 导出在后台线程执行，轮询等待其落盘
+        for _ in range(40):
+            if csv_path.exists():
+                break
+            time.sleep(0.05)
         self.assertTrue(csv_path.exists())
         with csv_path.open("r", encoding="utf-8-sig", newline="") as handle:
             rows = list(csv.DictReader(handle))

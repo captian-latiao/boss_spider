@@ -1,10 +1,14 @@
 import json
 import re
+import threading
 from datetime import datetime
 from typing import Any
 
 from .csv_exporter import CsvExporter
+from .logging_utils import log
 from .store import SQLiteStore, serialize_json
+
+_CSV_EXPORT_LOCK = threading.Lock()
 
 
 def _extract_salary(salary_desc: str) -> tuple[str, str]:
@@ -88,7 +92,6 @@ def build_job_from_delivery_payload(data: dict[str, Any]) -> dict[str, Any]:
 def record_delivery(
     store: SQLiteStore,
     data: dict[str, Any],
-    csv_exporter: CsvExporter | None = None,
 ) -> dict[str, Any]:
     job = build_job_from_delivery_payload(data)
     store.upsert_job(job, source="delivery")
@@ -99,5 +102,14 @@ def record_delivery(
         filter_detail=job["filter_detail"],
         raw_json=serialize_json(data),
     )
-    (csv_exporter or CsvExporter()).export_job(job)
     return job
+
+
+def export_job_background(job: dict[str, Any]) -> None:
+    """导出 CSV 在后台线程执行，失败只记录日志，不影响接口响应。"""
+    try:
+        # 每次新建实例以读取当时的 BOSS_HELPER_CSV_DIR，锁保证串行写入
+        with _CSV_EXPORT_LOCK:
+            CsvExporter().export_job(job)
+    except Exception as exc:
+        log(f"CSV 导出失败: {exc}")

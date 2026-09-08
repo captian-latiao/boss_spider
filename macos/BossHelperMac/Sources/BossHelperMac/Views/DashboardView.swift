@@ -41,7 +41,7 @@ struct DashboardView: View {
                 // 1+2. Unified 4-column grid: service(1) + efficiency(3),
                 // then the four metric cards (1 each)
                 mainGrid
-                    .frame(maxHeight: 260)
+                    .frame(maxHeight: 340)
 
                 // 3. Live Activity Feed
                 liveActivitySection
@@ -200,17 +200,25 @@ struct DashboardView: View {
                 Text("投递效率")
                     .font(.system(size: AppFontSize.title, weight: .bold))
 
-                Text(speedText)
-                    .font(.system(size: AppFontSize.body, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(themeAccentColor)
-
                 Spacer(minLength: 4)
 
                 Text(speedDetailText)
                     .font(.system(size: AppFontSize.caption))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                speedSummaryRow(
+                    color: themeAccentColor,
+                    label: "总速度",
+                    value: totalSpeedText
+                )
+                speedSummaryRow(
+                    color: .green,
+                    label: "成功速度",
+                    value: successSpeedText
+                )
             }
 
             if dailySpeedPoints.isEmpty {
@@ -222,7 +230,8 @@ struct DashboardView: View {
                 Chart(dailySpeedPoints) { point in
                     LineMark(
                         x: .value("日期", point.date),
-                        y: .value("速度", point.speed)
+                        y: .value("速度", point.speed),
+                        series: .value("系列", "总速度")
                     )
                     .foregroundStyle(themeAccentColor)
                     .lineStyle(StrokeStyle(lineWidth: 2))
@@ -235,6 +244,22 @@ struct DashboardView: View {
                     .foregroundStyle(themeAccentColor)
                     .symbolSize(28)
 
+                    LineMark(
+                        x: .value("日期", point.date),
+                        y: .value("速度", point.successSpeed),
+                        series: .value("系列", "成功速度")
+                    )
+                    .foregroundStyle(Color.green)
+                    .lineStyle(StrokeStyle(lineWidth: 2))
+                    .interpolationMethod(.catmullRom)
+
+                    PointMark(
+                        x: .value("日期", point.date),
+                        y: .value("速度", point.successSpeed)
+                    )
+                    .foregroundStyle(Color.green)
+                    .symbolSize(28)
+
                     if let hoveredPoint {
                         RuleMark(x: .value("日期", hoveredPoint.date))
                             .foregroundStyle(Color.secondary.opacity(0.4))
@@ -243,17 +268,34 @@ struct DashboardView: View {
                                 spacing: 4,
                                 overflowResolution: .init(x: .disabled, y: .disabled)
                             ) {
-                                VStack(spacing: 2) {
+                                VStack(alignment: .leading, spacing: 3) {
                                     Text(hoveredPoint.dateLabel)
                                         .font(.system(size: AppFontSize.caption))
                                         .foregroundStyle(.secondary)
 
-                                    Text(
-                                        "\(String(format: "%.1f", hoveredPoint.speed)) 条/小时 · \(hoveredPoint.total) 条"
-                                    )
-                                    .font(.system(size: AppFontSize.caption, weight: .semibold, design: .rounded))
-                                    .monospacedDigit()
-                                    .foregroundStyle(.primary)
+                                    HStack(spacing: 4) {
+                                        Circle()
+                                            .fill(themeAccentColor)
+                                            .frame(width: 6, height: 6)
+                                        Text("总 \(String(format: "%.1f", hoveredPoint.speed)) 条/小时")
+                                            .font(.system(size: AppFontSize.caption, weight: .semibold, design: .rounded))
+                                            .monospacedDigit()
+                                            .foregroundStyle(.primary)
+                                    }
+
+                                    HStack(spacing: 4) {
+                                        Circle()
+                                            .fill(Color.green)
+                                            .frame(width: 6, height: 6)
+                                        Text("成功 \(String(format: "%.1f", hoveredPoint.successSpeed)) 条/小时")
+                                            .font(.system(size: AppFontSize.caption, weight: .semibold, design: .rounded))
+                                            .monospacedDigit()
+                                            .foregroundStyle(.primary)
+                                    }
+
+                                    Text("当日共 \(hoveredPoint.total) 条")
+                                        .font(.system(size: AppFontSize.caption))
+                                        .foregroundStyle(.secondary)
                                 }
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 5)
@@ -384,20 +426,47 @@ struct DashboardView: View {
             guard let date = formatter.date(from: item.date) else {
                 return nil
             }
-            return DailySpeedPoint(date: date, speed: item.speedPerHour, total: item.total)
+            return DailySpeedPoint(
+                date: date,
+                speed: item.speedPerHour,
+                successSpeed: item.successPerHour,
+                total: item.total
+            )
         }
     }
 
     private var speedUpperBound: Double {
         let maxSpeed = appState.dailySpeed.map(\.speedPerHour).max() ?? 0
-        return max(maxSpeed * 1.2, 1)
+        let maxSuccess = appState.dailySpeed.map(\.successPerHour).max() ?? 0
+        return max(max(maxSpeed, maxSuccess) * 1.2, 1)
     }
 
-    private var speedText: String {
+    private var totalSpeedText: String {
         guard let speed = appState.metrics?.speedPerHour else {
             return "--"
         }
         return String(format: "%.1f 条/小时", speed)
+    }
+
+    private var successSpeedText: String {
+        guard let success = appState.metrics?.successPerHour else {
+            return "--"
+        }
+        return String(format: "%.1f 条/小时", success)
+    }
+
+    private func speedSummaryRow(color: Color, label: String, value: String) -> some View {
+        HStack(spacing: 5) {
+            Circle()
+                .fill(color)
+                .frame(width: 7, height: 7)
+            Text(label)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .monospacedDigit()
+                .foregroundStyle(color)
+        }
+        .font(.system(size: AppFontSize.body, weight: .semibold, design: .rounded))
     }
 
     private var speedDetailText: String {
@@ -561,6 +630,7 @@ private struct DashboardMetricCard: View {
 private struct DailySpeedPoint: Identifiable {
     let date: Date
     let speed: Double
+    let successSpeed: Double
     let total: Int
     var id: Date { date }
 

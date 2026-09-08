@@ -20,6 +20,7 @@ struct MetricsResponse: Codable {
     let pauseCount: Int?
     let pauseSeconds: Int?
     let speedPerHour: Double?
+    let successPerHour: Double?
 }
 
 struct DailySpeedItem: Codable, Identifiable {
@@ -28,6 +29,7 @@ struct DailySpeedItem: Codable, Identifiable {
     let activeSeconds: Int
     let pauseCount: Int
     let speedPerHour: Double
+    let successPerHour: Double
 
     var id: String { date }
 }
