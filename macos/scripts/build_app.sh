@@ -21,5 +21,9 @@ cp "$PROJECT_DIR/.build/release/BossHelperMac" "$MACOS_DIR/BossHelperMac"
 cp "$BACKEND_EXE" "$MACOS_DIR/boss-helper-backend"
 cp "$PROJECT_DIR/Info.plist" "$CONTENTS_DIR/Info.plist"
 
+# Adhoc-sign the bundle so Gatekeeper doesn't treat it as "damaged" when downloaded.
+# (Not notarized, so macOS may still ask "unverified developer" — right-click → Open.)
+codesign --force --deep -s - "$APP_DIR"
+
 echo "Built app: $APP_DIR"
 echo "Run it with: open $APP_DIR"
